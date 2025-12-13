@@ -22,6 +22,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     let createdAt: Date
     let sourceApp: String?
     var isPinned: Bool = false
+    var copyCount: Int = 1
 
     var textRepresentation: String {
         switch data {
@@ -208,13 +209,20 @@ class ClipboardManager: ObservableObject {
                                 continue 
                             }
                             
+                            // Check for existing item to increment count
+                            var existingCount = 1
+                            if let existing = history.first(where: { $0.data == newItemData }) {
+                                existingCount = existing.copyCount + 1
+                            }
+                            
                             history.removeAll { $0.data == newItemData }
                             
                             let newItem = ClipboardItem(
                                 id: UUID(),
                                 data: newItemData,
                                 createdAt: Date(),
-                                sourceApp: sourceAppName
+                                sourceApp: sourceAppName,
+                                copyCount: existingCount
                             )
                             history.insert(newItem, at: 0)
                         }
@@ -250,7 +258,7 @@ class ClipboardManager: ObservableObject {
         var item = history[index]
         // Currently only supporting updating text content
         if case .text(_, let sourceURL) = item.data {
-             item = ClipboardItem(id: item.id, data: .text(newText, sourceURL: sourceURL), createdAt: item.createdAt, sourceApp: item.sourceApp, isPinned: item.isPinned)
+             item = ClipboardItem(id: item.id, data: .text(newText, sourceURL: sourceURL), createdAt: item.createdAt, sourceApp: item.sourceApp, isPinned: item.isPinned, copyCount: item.copyCount)
              history[index] = item
         }
     }
@@ -661,6 +669,12 @@ struct LuminaDetailStage: View {
                 VStack(spacing: 0) {
                     if let source = item.sourceApp {
                         MetadataRow(icon: "app.dashed", label: "Source", value: source)
+                    }
+                    
+                    if item.copyCount > 1 {
+                        MetadataRow(icon: "doc.on.doc", label: "Copied", value: "\(item.copyCount) times")
+                    } else {
+                        MetadataRow(icon: "doc.on.doc", label: "Copied", value: "1 time")
                     }
                     
                     if case .text(let text, let sourceURL) = item.data {
