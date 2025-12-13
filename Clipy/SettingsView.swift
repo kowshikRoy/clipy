@@ -2,6 +2,7 @@
 import SwiftUI
 import Combine
 import Carbon
+import AppKit
 
 // MARK: - App Settings Model
 
@@ -491,6 +492,18 @@ struct PrivacySettingsView: View {
                     .buttonStyle(.plain)
                     .disabled(newAppInput.isEmpty)
                     .opacity(newAppInput.isEmpty ? 0.5 : 1.0)
+                    
+                    Button(action: browseForApp) {
+                        Image(systemName: "folder")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 30, height: 30)
+                            .background(Color.obsidianSurface)
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Browse Applications")
                 }
                 
                 if !settings.blockedApps.isEmpty {
@@ -596,6 +609,27 @@ struct PrivacySettingsView: View {
     private func removeHost(_ host: String) {
         settings.blockedHosts.removeAll { $0 == host }
     }
+    
+    private func browseForApp() {
+        let panel = NSOpenPanel()
+        panel.allowedFileTypes = ["app"]
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.prompt = "Block App"
+        
+        panel.begin { response in
+            if response == .OK {
+                for url in panel.urls {
+                    let appName = url.deletingPathExtension().lastPathComponent
+                    if !settings.blockedApps.contains(appName) {
+                        settings.blockedApps.append(appName)
+                    }
+                }
+            }
+        }
+    }
 }
 
 struct BlockingRow: View {
@@ -603,13 +637,27 @@ struct BlockingRow: View {
     let icon: String
     let onDelete: () -> Void
     @State private var isHovering = false
+    @State private var appIcon: NSImage?
     
     var body: some View {
         HStack {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundColor(.luminaTextSecondary)
-                .frame(width: 20)
+            if icon == "app.dashed" {
+                 if let appIcon = appIcon {
+                     Image(nsImage: appIcon)
+                         .resizable()
+                         .frame(width: 16, height: 16)
+                 } else {
+                     Image(systemName: icon)
+                         .font(.system(size: 12))
+                         .foregroundColor(.luminaTextSecondary)
+                         .frame(width: 20)
+                 }
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(.luminaTextSecondary)
+                    .frame(width: 20)
+            }
             
             Text(label)
                 .font(.custom("Roboto", size: 13))
@@ -637,6 +685,28 @@ struct BlockingRow: View {
             withAnimation(.easeInOut(duration: 0.1)) {
                 isHovering = hovering
             }
+        }
+        .onAppear {
+            if icon == "app.dashed" {
+                fetchIcon()
+            }
+        }
+    }
+    
+    private func fetchIcon() {
+        // Simple logic: Assume app is in /Applications or try to find it by name
+        let path = "/Applications/\(label).app"
+        if FileManager.default.fileExists(atPath: path) {
+             self.appIcon = NSWorkspace.shared.icon(forFile: path)
+        } else {
+             // Try to find if it's a known app bundle id or something?
+             // For now just try exact name match in /Applications
+             
+             // Fallback: System apps?
+             let systemPath = "/System/Applications/\(label).app"
+             if FileManager.default.fileExists(atPath: systemPath) {
+                 self.appIcon = NSWorkspace.shared.icon(forFile: systemPath)
+             }
         }
     }
 }

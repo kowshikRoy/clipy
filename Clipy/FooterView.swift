@@ -31,6 +31,16 @@ struct FooterView: View {
                 // Paste to App
                 Button(action: onPasteToApp) {
                     HStack(spacing: 6) {
+                        if let icon = focusManager.previousApp?.icon {
+                            Image(nsImage: icon)
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                        } else {
+                            Image(systemName: "app.dashed")
+                                .font(.system(size: 14))
+                                .foregroundColor(.luminaTextSecondary)
+                        }
+                        
                         Text("Paste to \(focusManager.previousApp?.localizedName ?? "App")")
                             .font(.custom("Roboto", size: 13))
                             .fontWeight(.medium)

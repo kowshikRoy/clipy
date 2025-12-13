@@ -670,7 +670,7 @@ struct LuminaDetailStage: View {
 
                 VStack(spacing: 0) {
                     if let source = item.sourceApp {
-                        MetadataRow(icon: "app.dashed", label: "Source", value: source)
+                        MetadataRow(icon: "app.dashed", label: "Source", value: source, appIcon: iconForApp(source))
                     }
                     
                     if item.copyCount > 1 {
@@ -705,20 +705,47 @@ struct LuminaDetailStage: View {
         .padding(24)
         .background(Color.clear) // Removed gradient as per user request
     }
+    
+    private func iconForApp(_ name: String) -> NSImage? {
+        // 1. Try exact path in /Applications
+        let path = "/Applications/\(name).app"
+        if FileManager.default.fileExists(atPath: path) {
+            return NSWorkspace.shared.icon(forFile: path)
+        }
+        
+        // 2. Try in /System/Applications
+        let systemPath = "/System/Applications/\(name).app"
+        if FileManager.default.fileExists(atPath: systemPath) {
+            return NSWorkspace.shared.icon(forFile: systemPath)
+        }
+        
+        // 3. Try to use NSWorkspace to find app by name (more expensive/complex generally, simply fallback for MVP)
+        // If we had the bundle identifier it would be easier.
+        
+        return nil
+    }
 }
 
 struct MetadataRow: View {
     let icon: String
     let label: String
     let value: String
+    var appIcon: NSImage? = nil
     
     var body: some View {
         HStack(spacing: 0) { // Zero spacing, controlled by frame/padding
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundColor(.luminaTextSecondary)
-                .frame(width: 16)
-                .padding(.trailing, 8)
+            if let appIcon = appIcon {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                    .padding(.trailing, 8)
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(.luminaTextSecondary)
+                    .frame(width: 16)
+                    .padding(.trailing, 8)
+            }
                 
             Text(label)
                 .font(.custom("Roboto", size: 13))
@@ -730,9 +757,7 @@ struct MetadataRow: View {
                 .fontWeight(.medium)
                 .foregroundColor(.luminaTextPrimary)
                 
-            Spacer() // Push everything to left? Or just let it sit? User said "close to their type". 
-            // If I put Spacer() at the end, the whole block is left aligned in the container.
-            // The container is a VStack(alignment: .leading). So simply removing the middle spacer is enough.
+            Spacer() 
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 4) // Tighter vertical padding for "list" feel
