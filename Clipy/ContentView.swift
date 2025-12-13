@@ -437,6 +437,8 @@ struct ContentView: View {
                             .keyboardShortcut(.upArrow, modifiers: [])
                         Button("") { moveSelection(offset: 1, proxy: proxy) }
                             .keyboardShortcut(.downArrow, modifiers: [])
+                        Button("") { NSApplication.shared.hide(nil) }
+                            .keyboardShortcut(.cancelAction)
                     }
                     .frame(width: 0, height: 0)
                     .opacity(0)
