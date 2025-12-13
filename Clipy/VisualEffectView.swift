@@ -13,7 +13,7 @@ struct VisualEffectView: NSViewRepresentable {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
         view.state = .active
-        view.material = .sidebar
+        view.material = .hudWindow
         view.autoresizingMask = [.width, .height]
         return view
     }

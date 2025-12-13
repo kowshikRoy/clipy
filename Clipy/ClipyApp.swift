@@ -26,6 +26,8 @@ struct ClipyApp: App {
                         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
                         window.standardWindowButton(.zoomButton)?.isHidden = true
                         window.isMovableByWindowBackground = true
+                        window.backgroundColor = .clear
+                        window.isOpaque = false
                     }
                 }
         }

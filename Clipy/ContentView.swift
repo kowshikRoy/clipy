@@ -286,11 +286,11 @@ struct ContentView: View {
             // MARK: - Sidebar (Timeline)
             timelineView
                 .frame(width: 320)
-                .background(Color.obsidianBackground)
+                .background(Color.obsidianBackground.opacity(0.6))
             
             // MARK: - Detail Stage
             ZStack {
-                Color.obsidianBackground.ignoresSafeArea()
+                Color.obsidianBackground.opacity(0.6).ignoresSafeArea()
                 
                 if let selectedItem {
                     LuminaDetailStage(item: selectedItem)
