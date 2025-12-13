@@ -300,8 +300,7 @@ struct ContentView: View {
     @StateObject private var clipboardManager: ClipboardManager
     @State private var selectedItemID: ClipboardItem.ID?
     @State private var searchText = ""
-    @State private var isShowingEditSheet = false
-    @State private var editingItem: ClipboardItem?
+    @State private var isEditing = false
     @State private var editingText = ""
     
     init(settings: AppSettings, focusManager: AppFocusManager) {
@@ -328,7 +327,13 @@ struct ContentView: View {
                 Color.obsidianBackground.opacity(0.6).ignoresSafeArea()
                 
                 if let selectedItem {
-                    LuminaDetailStage(item: selectedItem)
+                    LuminaDetailStage(
+                        item: selectedItem,
+                        isEditing: $isEditing,
+                        editingText: $editingText,
+                        onSave: saveEdit,
+                        onCancel: cancelEdit
+                    )
                 } else {
                     emptyState
                 }
@@ -347,16 +352,6 @@ struct ContentView: View {
             onDelete: deleteEntry,
             onDeleteAll: deleteAllEntries
         )
-        .sheet(isPresented: $isShowingEditSheet) {
-            if let item = editingItem {
-                EditView(text: $editingText, onSave: { newText in
-                    clipboardManager.updateItem(id: item.id, newText: newText)
-                    isShowingEditSheet = false
-                }, onCancel: {
-                    isShowingEditSheet = false
-                })
-            }
-        }
     }
     .background(VisualEffectView().ignoresSafeArea())
         .ignoresSafeArea()
@@ -496,6 +491,7 @@ struct ContentView: View {
         let newItem = history[newIndex]
         if selectedItemID != newItem.id {
             selectedItemID = newItem.id
+            isEditing = false // Exit editing mode when selection changes
             withAnimation {
                 proxy.scrollTo(newItem.id, anchor: .center)
             }
@@ -557,10 +553,19 @@ struct ContentView: View {
     private func editEntry() {
         guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
         if case .text(let text, _) = item.data {
-            editingItem = item
             editingText = text
-            isShowingEditSheet = true
+            isEditing = true
         }
+    }
+
+    private func saveEdit() {
+        guard let selectedItemID else { return }
+        clipboardManager.updateItem(id: selectedItemID, newText: editingText)
+        isEditing = false
+    }
+
+    private func cancelEdit() {
+        isEditing = false
     }
     
     private func pinEntry() {
@@ -631,6 +636,10 @@ struct LuminaRow: View {
 
 struct LuminaDetailStage: View {
     let item: ClipboardItem
+    @Binding var isEditing: Bool
+    @Binding var editingText: String
+    let onSave: () -> Void
+    let onCancel: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -639,21 +648,57 @@ struct LuminaDetailStage: View {
                 Image(systemName: item.smartType.icon)
                     .font(.system(size: 24))
                     .foregroundColor(item.smartType.color)
+                    .foregroundColor(item.smartType.color)
+                
                 Text(item.smartType.title)
                     .font(.custom("Roboto", size: 24))
-                    .fontWeight(.light) // Roboto doesn't have UltraLight usually, switching to Light or Thin, sticking to Light for safety
+                    .fontWeight(.light)
                     .foregroundColor(.luminaTextPrimary)
+                
                 Spacer()
+                
+                if isEditing {
+                    Button("Cancel", action: onCancel)
+                        .buttonStyle(.plain)
+                        .foregroundColor(.luminaTextSecondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(6)
+                    
+                    Button("Save", action: onSave)
+                        .buttonStyle(.plain)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.accentColor)
+                        .cornerRadius(6)
+                }
             }
             .padding(.bottom, 20)
             
             // Content
-            ScrollView {
-                Text(item.textRepresentation)
-                    .font(item.smartType == .code ? .system(size: 13, design: .monospaced) : .custom("Roboto", size: 14))
+            // Content
+            if isEditing {
+                TextEditor(text: $editingText)
+                    .font(.custom("Roboto", size: 14))
                     .foregroundColor(.luminaTextPrimary)
-                    .lineSpacing(6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(4) // Match read-only padding roughly
+                    .scrollContentBackground(.hidden) // Remove default background
+                    .background(Color.clear) // Clear background
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.accentColor.opacity(0.3), lineWidth: 1) // Subtle focus ring
+                    )
+            } else {
+                ScrollView {
+                    Text(item.textRepresentation)
+                        .font(item.smartType == .code ? .system(size: 13, design: .monospaced) : .custom("Roboto", size: 14))
+                        .foregroundColor(.luminaTextPrimary)
+                        .lineSpacing(6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .textSelection(.enabled)
+                }
             }
             
             Spacer()
