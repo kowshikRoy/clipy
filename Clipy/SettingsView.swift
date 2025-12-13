@@ -1,6 +1,7 @@
 
 import SwiftUI
 import Combine
+import Carbon
 
 // MARK: - App Settings Model
 
@@ -18,9 +19,25 @@ class AppSettings: ObservableObject {
         }
     }
     
+    @Published var hotkeyKeyCode: Int {
+        didSet {
+             UserDefaults.standard.set(hotkeyKeyCode, forKey: "hotkeyKeyCode")
+        }
+    }
+    
+    @Published var hotkeyModifiers: Int {
+        didSet {
+            UserDefaults.standard.set(hotkeyModifiers, forKey: "hotkeyModifiers")
+        }
+    }
+    
     init() {
         self.blockedApps = AppSettings.load(key: "blockedApps")
         self.blockedHosts = AppSettings.load(key: "blockedHosts")
+        
+        // Default to Cmd+Shift+V
+        self.hotkeyKeyCode = UserDefaults.standard.object(forKey: "hotkeyKeyCode") as? Int ?? kVK_ANSI_V
+        self.hotkeyModifiers = UserDefaults.standard.object(forKey: "hotkeyModifiers") as? Int ?? cmdKey + shiftKey
     }
     
     func isBlocked(app: String?, host: String?) -> Bool {
@@ -109,7 +126,7 @@ struct SettingsView: View {
             
             // Content Area
             if activeTab == .general {
-                GeneralSettingsView()
+                GeneralSettingsView(settings: settings)
             } else if activeTab == .privacy {
                 PrivacySettingsView(settings: settings)
             } else {
@@ -124,21 +141,206 @@ struct SettingsView: View {
 // MARK: - Sub Views
 
 struct GeneralSettingsView: View {
+    @ObservedObject var settings: AppSettings
+    
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("General Settings")
                 .font(.custom("Roboto", size: 18))
                 .foregroundColor(.luminaTextPrimary)
             
-            Text("Launch at Login, Shortcuts, and History retention settings will go here.")
-                .font(.custom("Roboto", size: 13))
-                .foregroundColor(.luminaTextSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Global Shortcut")
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaTextSecondary)
+                
+                ShortcutRecorder(keyCode: $settings.hotkeyKeyCode, modifiers: $settings.hotkeyModifiers) {
+                    // Update hotkey registration when changed
+                    let manager = HotKeyManager.shared
+                    manager.registerHotKey(keyCode: UInt32(settings.hotkeyKeyCode), modifiers: UInt32(settings.hotkeyModifiers))
+                }
+            }
+            .padding(.horizontal, 20)
             
             Spacer()
         }
         .padding(30)
+    }
+}
+
+struct ShortcutRecorder: View {
+    @Binding var keyCode: Int
+    @Binding var modifiers: Int
+    var onChange: () -> Void
+    
+    @State private var isRecording = false
+    @State private var monitor: Any?
+    
+    var body: some View {
+        Button(action: {
+            isRecording.toggle()
+            if isRecording {
+                startRecording()
+            } else {
+                stopRecording()
+            }
+        }) {
+            HStack {
+                if isRecording {
+                    Text("Type shortcut...")
+                        .foregroundColor(.luminaTextSecondary)
+                } else {
+                    Text(keyString)
+                        .foregroundColor(.luminaTextPrimary)
+                }
+                
+                if isRecording {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.luminaTextSecondary)
+                }
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .frame(minWidth: 120)
+            .background(Color.obsidianSurface)
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isRecording ? Color.luminaAccent : Color.obsidianBorder, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var keyString: String {
+        var string = ""
+        
+        if modifiers & cmdKey != 0 { string += "⌘ " }
+        if modifiers & shiftKey != 0 { string += "⇧ " }
+        if modifiers & optionKey != 0 { string += "⌥ " }
+        if modifiers & controlKey != 0 { string += "⌃ " }
+        
+        // Very basic mapping for demo purposes. In a real app, use UCKeyTranslate or similar.
+        // For now, we handle common keys.
+        string += keyDescription(for: keyCode)
+        
+        return string
+    }
+    
+    private func keyDescription(for code: Int) -> String {
+        switch code {
+        case kVK_ANSI_A: return "A"
+        case kVK_ANSI_S: return "S"
+        case kVK_ANSI_D: return "D"
+        case kVK_ANSI_F: return "F"
+        case kVK_ANSI_H: return "H"
+        case kVK_ANSI_G: return "G"
+        case kVK_ANSI_Z: return "Z"
+        case kVK_ANSI_X: return "X"
+        case kVK_ANSI_C: return "C"
+        case kVK_ANSI_V: return "V"
+        case kVK_ANSI_B: return "B"
+        case kVK_ANSI_Q: return "Q"
+        case kVK_ANSI_W: return "W"
+        case kVK_ANSI_E: return "E"
+        case kVK_ANSI_R: return "R"
+        case kVK_ANSI_Y: return "Y"
+        case kVK_ANSI_T: return "T"
+        case kVK_ANSI_1: return "1"
+        case kVK_ANSI_2: return "2"
+        case kVK_ANSI_3: return "3"
+        case kVK_ANSI_4: return "4"
+        case kVK_ANSI_6: return "6"
+        case kVK_ANSI_5: return "5"
+        case kVK_ANSI_Equal: return "="
+        case kVK_ANSI_9: return "9"
+        case kVK_ANSI_7: return "7"
+        case kVK_ANSI_Minus: return "-"
+        case kVK_ANSI_8: return "8"
+        case kVK_ANSI_0: return "0"
+        case kVK_ANSI_RightBracket: return "]"
+        case kVK_ANSI_O: return "O"
+        case kVK_ANSI_U: return "U"
+        case kVK_ANSI_LeftBracket: return "["
+        case kVK_ANSI_I: return "I"
+        case kVK_ANSI_P: return "P"
+        case kVK_ANSI_L: return "L"
+        case kVK_ANSI_J: return "J"
+        case kVK_ANSI_Quote: return "\""
+        case kVK_ANSI_K: return "K"
+        case kVK_ANSI_Semicolon: return ";"
+        case kVK_ANSI_Backslash: return "\\"
+        case kVK_ANSI_Comma: return ","
+        case kVK_ANSI_Slash: return "/"
+        case kVK_ANSI_N: return "N"
+        case kVK_ANSI_M: return "M"
+        case kVK_ANSI_Period: return "."
+        case kVK_ANSI_Grave: return "`"
+        case kVK_ANSI_KeypadDecimal: return "."
+        case kVK_ANSI_KeypadMultiply: return "*"
+        case kVK_ANSI_KeypadPlus: return "+"
+        case kVK_ANSI_KeypadClear: return "Clear"
+        case kVK_ANSI_KeypadDivide: return "/"
+        case kVK_ANSI_KeypadEnter: return "Enter"
+        case kVK_ANSI_KeypadMinus: return "-"
+        case kVK_ANSI_KeypadEquals: return "="
+        case kVK_ANSI_Keypad0: return "0"
+        case kVK_ANSI_Keypad1: return "1"
+        case kVK_ANSI_Keypad2: return "2"
+        case kVK_ANSI_Keypad3: return "3"
+        case kVK_ANSI_Keypad4: return "4"
+        case kVK_ANSI_Keypad5: return "5"
+        case kVK_ANSI_Keypad6: return "6"
+        case kVK_ANSI_Keypad7: return "7"
+        case kVK_ANSI_Keypad8: return "8"
+        case kVK_ANSI_Keypad9: return "9"
+        case kVK_Return: return "Enter"
+        case kVK_Tab: return "Tab"
+        case kVK_Space: return "Space"
+        case kVK_Delete: return "Delete"
+        case kVK_Escape: return "Esc"
+        default: return "?"
+        }
+    }
+    
+    private func startRecording() {
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Ignore single modifier keys
+            if event.modifierFlags.contains(.command) || 
+               event.modifierFlags.contains(.control) || 
+               event.modifierFlags.contains(.option) || 
+               event.modifierFlags.contains(.shift) {
+                   
+               // Only if there is a non-modifier key pressed?
+               // Actually we want to capture the combo.
+            }
+            
+            // Map NSEvent modifiers to Carbon modifiers
+            var carbonModifiers: Int = 0
+            if event.modifierFlags.contains(.command) { carbonModifiers |= cmdKey }
+            if event.modifierFlags.contains(.shift) { carbonModifiers |= shiftKey }
+            if event.modifierFlags.contains(.option) { carbonModifiers |= optionKey }
+            if event.modifierFlags.contains(.control) { carbonModifiers |= controlKey }
+            
+            // if it's just a modifier key, don't stop recording yet, but usually we just care about the final key down
+            // But NSEvent.keyDown only fires when a key is pressed.
+            
+            self.keyCode = Int(event.keyCode)
+            self.modifiers = carbonModifiers
+            
+            self.stopRecording()
+            self.onChange()
+            
+            return nil // Consume event
+        }
+    }
+    
+    private func stopRecording() {
+        if let monitor = monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+        isRecording = false
     }
 }
 

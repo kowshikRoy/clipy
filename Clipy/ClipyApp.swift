@@ -31,12 +31,42 @@ struct ClipyApp: App {
                         window.isOpaque = false
                     }
                 }
+                .onAppear {
+                    setupHotKey()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+                    NSApplication.shared.hide(nil)
+                }
         }
         .windowStyle(.hiddenTitleBar)
         
         Settings {
             SettingsView(settings: appSettings)
                 .frame(width: 500, height: 400)
+        }
+    }
+    
+    private func setupHotKey() {
+        let manager = HotKeyManager.shared
+        
+        // Initial registration
+        manager.registerHotKey(keyCode: UInt32(appSettings.hotkeyKeyCode), modifiers: UInt32(appSettings.hotkeyModifiers))
+        
+        // Callback
+        manager.onHotKeyPressed = {
+            toggleAppVisibility()
+        }
+    }
+    
+    private func toggleAppVisibility() {
+        if NSApplication.shared.isActive {
+             NSApplication.shared.hide(nil)
+        } else {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            // Ensure window is visible if it was closed
+            if let window = NSApplication.shared.windows.first {
+                window.makeKeyAndOrderFront(nil)
+            }
         }
     }
 }
