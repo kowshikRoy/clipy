@@ -42,7 +42,6 @@ struct ClipyApp: App {
         
         Settings {
             SettingsView(settings: appSettings)
-                .frame(width: 500, height: 400)
         }
     }
     

@@ -69,8 +69,6 @@ class AppSettings: ObservableObject {
 
 // MARK: - Settings View
 
-// MARK: - Settings View
-
 enum SettingsTab: String, CaseIterable {
     case general = "General"
     case privacy = "Privacy"
@@ -87,69 +85,109 @@ enum SettingsTab: String, CaseIterable {
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
-    @State private var activeTab: SettingsTab = .privacy
+    @State private var activeTab: SettingsTab = .general
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Top Tab Bar
-            HStack(spacing: 0) {
-                Spacer()
+        HStack(spacing: 0) {
+            // MARK: - Sidebar
+            VStack(spacing: 0) { // Zero spacing, padding handled by button
                 ForEach(SettingsTab.allCases, id: \.self) { tab in
-                    Button(action: { activeTab = tab }) {
-                        VStack(spacing: 4) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 14, weight: .medium))
-                            Text(tab.rawValue)
-                                .font(.custom("Roboto", size: 11))
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(activeTab == tab ? .luminaTextPrimary : .luminaTextSecondary)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(activeTab == tab ? Color.white.opacity(0.1) : Color.clear)
-                        )
+                    SidebarButton(tab: tab, isActive: activeTab == tab) {
+                        activeTab = tab
                     }
-                    .buttonStyle(.plain)
                 }
                 Spacer()
             }
-            .padding(.vertical, 12)
-            .background(Color.obsidianSurface)
+            .padding(.top, 20) // Top padding matches content area roughly
+            .padding(.horizontal, 10)
+            .frame(width: 200) // Increased width slightly to accommodate new padding
+            .background(Color.obsidianBackground.opacity(0.6)) // Matching opacity
             .overlay(
                 Rectangle()
-                    .frame(height: 1)
+                    .frame(width: 1)
                     .foregroundColor(Color.obsidianBorder),
-                alignment: .bottom
+                alignment: .trailing
             )
             
-            // Content Area
-            if activeTab == .general {
-                GeneralSettingsView(settings: settings)
-            } else if activeTab == .privacy {
-                PrivacySettingsView(settings: settings)
-            } else {
-                AboutSettingsView()
+            // MARK: - Content
+            VStack(alignment: .leading, spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        if activeTab == .general {
+                            GeneralSettingsView(settings: settings)
+                        } else if activeTab == .privacy {
+                            PrivacySettingsView(settings: settings)
+                        } else {
+                            AboutSettingsView()
+                        }
+                    }
+                    .padding(30) // More generous padding
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.obsidianBackground.opacity(0.6)) // Translucent background to show VisualEffectView
         }
-        .frame(width: 550, height: 400) // Slightly wider for comfort
-        .background(Color.obsidianBackground)
+        .frame(width: 650, height: 400) // Adjusted frame
+        .background(VisualEffectView().ignoresSafeArea())
+        .preferredColorScheme(.dark)
     }
 }
 
 // MARK: - Sub Views
 
+// MARK: - Sidebar Button Matching LuminaRow
+struct SidebarButton: View {
+    let tab: SettingsTab
+    let isActive: Bool
+    let action: () -> Void
+    @State private var isHovering = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: isActive ? tab.icon + ".fill" : tab.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isActive ? .luminaTextPrimary : .luminaTextSecondary)
+                    .frame(width: 20, height: 20)
+                
+                Text(tab.rawValue)
+                    .font(.custom("Roboto", size: 13))
+                    .fontWeight(.regular)
+                    .foregroundColor(isActive ? .luminaTextPrimary : .luminaTextSecondary)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isActive ? Color.white.opacity(0.15) : (isHovering ? Color.white.opacity(0.08) : Color.clear))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                     .stroke(isActive ? Color.white.opacity(0.2) : Color.clear, lineWidth: 0.5)
+            )
+            .padding(.leading, 12)
+            .padding(.trailing, 4)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .contentShape(Rectangle())
+    }
+}
+
 struct GeneralSettingsView: View {
     @ObservedObject var settings: AppSettings
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("General Settings")
-                .font(.custom("Roboto", size: 18))
+        VStack(alignment: .leading, spacing: 24) {
+            Text("General")
+                .font(.custom("Roboto", size: 20))
+                .fontWeight(.medium)
                 .foregroundColor(.luminaTextPrimary)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("Global Shortcut")
                     .font(.custom("Roboto", size: 14))
                     .foregroundColor(.luminaTextSecondary)
@@ -159,12 +197,19 @@ struct GeneralSettingsView: View {
                     let manager = HotKeyManager.shared
                     manager.registerHotKey(keyCode: UInt32(settings.hotkeyKeyCode), modifiers: UInt32(settings.hotkeyModifiers))
                 }
+                
+                Text("Press this shortuct to toggle Clipy.")
+                    .font(.custom("Roboto", size: 12))
+                    .foregroundColor(.luminaTextSecondary.opacity(0.7))
             }
-            .padding(.horizontal, 20)
-            
-            Spacer()
+            .padding(20)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
         }
-        .padding(30)
     }
 }
 
@@ -185,24 +230,31 @@ struct ShortcutRecorder: View {
                 stopRecording()
             }
         }) {
-            HStack {
+            HStack(spacing: 8) {
                 if isRecording {
+                    Image(systemName: "recordingtape")
+                        .foregroundColor(.luminaAccent)
                     Text("Type shortcut...")
-                        .foregroundColor(.luminaTextSecondary)
+                        .foregroundColor(.luminaAccent)
                 } else {
+                    Image(systemName: "keyboard")
+                        .foregroundColor(.luminaTextSecondary)
                     Text(keyString)
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.luminaTextPrimary)
                 }
                 
+                Spacer()
+                
                 if isRecording {
-                    Image(systemName: "xmark.circle.fill")
+                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.luminaTextSecondary)
                 }
             }
-            .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .frame(minWidth: 120)
-            .background(Color.obsidianSurface)
+            .padding(.vertical, 8)
+            .frame(maxWidth: 200) // Fixed width for cleaner look
+            .background(isRecording ? Color.white.opacity(0.1) : Color.black.opacity(0.3))
             .cornerRadius(6)
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
@@ -220,8 +272,6 @@ struct ShortcutRecorder: View {
         if modifiers & optionKey != 0 { string += "⌥ " }
         if modifiers & controlKey != 0 { string += "⌃ " }
         
-        // Very basic mapping for demo purposes. In a real app, use UCKeyTranslate or similar.
-        // For now, we handle common keys.
         string += keyDescription(for: keyCode)
         
         return string
@@ -346,25 +396,53 @@ struct ShortcutRecorder: View {
 
 struct AboutSettingsView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "paperclip")
-                .font(.system(size: 48))
-                .foregroundColor(.luminaAccent)
-                .padding()
-                .background(Circle().fill(Color.obsidianSurface).frame(width: 80, height: 80))
+        VStack(spacing: 30) {
+            Spacer()
             
-            Text("Clipy")
-                .font(.custom("Roboto", size: 24))
-                .fontWeight(.bold)
-                .foregroundColor(.luminaTextPrimary)
+            VStack(spacing: 20) {
+                Image(systemName: "paperclip")
+                    .font(.system(size: 56))
+                    .foregroundColor(.luminaAccent)
+                    .padding(24)
+                    .background(
+                        Circle()
+                            .fill(Color.obsidianSurface)
+                            .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(Color.obsidianBorder, lineWidth: 1)
+                    )
+                
+                VStack(spacing: 8) {
+                    Text("Clipy")
+                        .font(.custom("Roboto", size: 32))
+                        .fontWeight(.bold)
+                        .foregroundColor(.luminaTextPrimary)
+                    
+                    Text("Version 2.0 (Lumina)")
+                        .font(.custom("Roboto", size: 14))
+                        .foregroundColor(.luminaTextSecondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(Color.obsidianSurface)
+                        .cornerRadius(20)
+                }
+            }
             
-            Text("Version 2.0 (Lumina)")
-                .font(.custom("Roboto", size: 13))
-                .foregroundColor(.luminaTextSecondary)
+            VStack(spacing: 12) {
+                Text("Designed for speed and simplicity.")
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaTextSecondary)
+                
+                Link("Visit Website", destination: URL(string: "https://clipy-app.com")!)
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaAccent)
+            }
             
             Spacer()
         }
-        .padding(40)
+        .frame(minHeight: 300)
     }
 }
 
@@ -374,96 +452,123 @@ struct PrivacySettingsView: View {
     @State private var newHostInput: String = ""
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Intro Text
-                Text("Manage blocked applications and websites. Content copied from these sources will be ignored.")
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Privacy")
+                .font(.custom("Roboto", size: 20))
+                .fontWeight(.medium)
+                .foregroundColor(.luminaTextPrimary)
+            
+            Text("Manage what creates a history entry. Content from these sources will be ignored.")
+                .font(.custom("Roboto", size: 13))
+                .foregroundColor(.luminaTextSecondary)
+                .padding(.bottom, 8)
+            
+            // Apps
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Blocked Applications", systemImage: "app.dashed")
                     .font(.custom("Roboto", size: 13))
-                    .foregroundColor(.luminaTextSecondary)
+                    .fontWeight(.medium)
+                    .foregroundColor(.luminaTextPrimary)
                 
-                // Blocked Application Section
-                VStack(alignment: .leading, spacing: 10) {
-                    Label("Blocked Applications", systemImage: "app.dashed")
-                        .font(.custom("Roboto", size: 14))
-                        .fontWeight(.medium)
+                HStack(spacing: 12) {
+                    TextField("Application Name", text: $newAppInput)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .font(.custom("Roboto", size: 13))
+                        .padding(8)
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(6)
                         .foregroundColor(.luminaTextPrimary)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 1))
                     
-                    HStack {
-                        TextField("e.g. Chrome", text: $newAppInput)
-                            .textFieldStyle(.plain)
-                            .font(.custom("Roboto", size: 13))
-                            .padding(8)
-                            .background(Color.obsidianSurface)
+                    Button(action: addApp) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 30, height: 30)
+                            .background(Color.luminaAccent)
                             .cornerRadius(6)
-                            .foregroundColor(.luminaTextPrimary)
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 0.5))
-                        
-                        Button(action: addApp) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.luminaTextPrimary)
-                                .padding(8)
-                                .background(Color.obsidianSurface)
-                                .cornerRadius(6)
-                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 0.5))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newAppInput.isEmpty)
                     }
-                    
-                    LazyVStack(spacing: 2) {
-                        ForEach(settings.blockedApps, id: \.self) { app in
-                            BlockingRow(label: app, icon: "app.dashed") {
-                                removeApp(app)
-                            }
-                        }
-                    }
-                    .background(Color.obsidianSurface.opacity(0.3))
-                    .cornerRadius(8)
+                    .buttonStyle(.plain)
+                    .disabled(newAppInput.isEmpty)
+                    .opacity(newAppInput.isEmpty ? 0.5 : 1.0)
                 }
                 
-                Divider().background(Color.obsidianBorder)
-                
-                // Blocked Hosts Section
-                VStack(alignment: .leading, spacing: 10) {
-                    Label("Blocked Websites", systemImage: "globe")
-                        .font(.custom("Roboto", size: 14))
-                        .fontWeight(.medium)
-                        .foregroundColor(.luminaTextPrimary)
+                if !settings.blockedApps.isEmpty {
                     
-                    HStack {
-                        TextField("e.g. google.com", text: $newHostInput)
-                            .textFieldStyle(.plain)
-                            .font(.custom("Roboto", size: 13))
-                            .padding(8)
-                            .background(Color.obsidianSurface)
-                            .cornerRadius(6)
-                            .foregroundColor(.luminaTextPrimary)
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 0.5))
-                        
-                        Button(action: addHost) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.luminaTextPrimary)
-                                .padding(8)
-                                .background(Color.obsidianSurface)
-                                .cornerRadius(6)
-                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 0.5))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newHostInput.isEmpty)
-                    }
-                    
-                    LazyVStack(spacing: 2) {
-                        ForEach(settings.blockedHosts, id: \.self) { host in
-                            BlockingRow(label: host, icon: "globe") {
-                                removeHost(host)
+                    ScrollView(.vertical) {
+                        LazyVStack(spacing: 2) {
+                            ForEach(settings.blockedApps, id: \.self) { app in
+                                BlockingRow(label: app, icon: "app.dashed") {
+                                    removeApp(app)
+                                }
                             }
                         }
                     }
-                    .background(Color.obsidianSurface.opacity(0.3))
-                    .cornerRadius(8)
+                    .frame(maxHeight: 120)
+                    .background(Color.obsidianSurface.opacity(0.5))
+                    .cornerRadius(6)
                 }
             }
-            .padding(24)
+            .padding(16)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
+            
+            // Hosts
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Blocked Websites", systemImage: "globe")
+                    .font(.custom("Roboto", size: 13))
+                    .fontWeight(.medium)
+                    .foregroundColor(.luminaTextPrimary)
+                
+                HStack(spacing: 12) {
+                    TextField("e.g. google.com", text: $newHostInput)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .font(.custom("Roboto", size: 13))
+                        .padding(8)
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(6)
+                        .foregroundColor(.luminaTextPrimary)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.obsidianBorder, lineWidth: 1))
+                    
+                    Button(action: addHost) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 30, height: 30)
+                            .background(Color.luminaAccent)
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(newHostInput.isEmpty)
+                    .opacity(newHostInput.isEmpty ? 0.5 : 1.0)
+                }
+                
+                if !settings.blockedHosts.isEmpty {
+                    ScrollView(.vertical) {
+                        LazyVStack(spacing: 2) {
+                            ForEach(settings.blockedHosts, id: \.self) { host in
+                                BlockingRow(label: host, icon: "globe") {
+                                    removeHost(host)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 120)
+                    .background(Color.obsidianSurface.opacity(0.5))
+                    .cornerRadius(6)
+                }
+            }
+            .padding(16)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
         }
     }
     
@@ -514,18 +619,24 @@ struct BlockingRow: View {
             
             if isHovering {
                 Button(action: onDelete) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.red.opacity(0.8))
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.luminaTextSecondary)
+                        .frame(width: 20, height: 20)
+                        .background(Color.red.opacity(0.2))
+                        .cornerRadius(10)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .background(isHovering ? Color.white.opacity(0.05) : Color.clear)
+        .cornerRadius(4)
         .onHover { hovering in
-            isHovering = hovering
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isHovering = hovering
+            }
         }
     }
 }
