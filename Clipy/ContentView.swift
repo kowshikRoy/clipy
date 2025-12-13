@@ -9,12 +9,17 @@ import SwiftUI
 import AppKit
 import Carbon
 import Combine
+import CryptoKit
+import ApplicationServices
+
+
 
 // MARK: - Data Models
 
 enum ClipboardData: Codable, Hashable {
     case text(String, sourceURL: String?)
     case color(String)
+    case image(String) // Path to image file relative to app support dir
 }
 
 struct ClipboardItem: Identifiable, Codable, Hashable {
@@ -31,6 +36,8 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
             return string
         case .color(let hex):
             return hex
+        case .image:
+            return "Image"
         }
     }
     
@@ -38,6 +45,8 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         switch data {
         case .color:
             return .color
+        case .image:
+            return .image
         case .text(let text, _):
             if let url = URL(string: text), url.scheme != nil, url.host != nil {
                 return .url
@@ -83,6 +92,8 @@ enum SmartContentType {
     case email
     case code
     case color
+    case image
+
     
     var icon: String {
         switch self {
@@ -91,6 +102,7 @@ enum SmartContentType {
         case .email: return "envelope"
         case .code: return "chevron.left.forwardslash.chevron.right"
         case .color: return "paintpalette"
+        case .image: return "photo"
         }
     }
     
@@ -101,6 +113,7 @@ enum SmartContentType {
         case .email: return .orange.opacity(0.8)
         case .code: return .green.opacity(0.8)
         case .color: return .purple.opacity(0.8)
+        case .image: return .pink.opacity(0.8)
         }
     }
 }
@@ -134,6 +147,11 @@ class ClipboardManager: ObservableObject {
         }
         
         self.historyFileURL = appDirectoryURL.appendingPathComponent("history.json")
+        
+        let imagesDirectoryURL = appDirectoryURL.appendingPathComponent("images")
+        if !fileManager.fileExists(atPath: imagesDirectoryURL.path) {
+            try? fileManager.createDirectory(at: imagesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        }
         
         loadHistory()
         self.lastChangeCount = NSPasteboard.general.changeCount
@@ -174,7 +192,65 @@ class ClipboardManager: ObservableObject {
                 if NSPasteboard.general.changeCount != lastChangeCount {
                     lastChangeCount = NSPasteboard.general.changeCount
                     
-                    if let copiedString = NSPasteboard.general.string(forType: .string) {
+                    // Check pasteboard types to determine if it's an image
+                    let types = NSPasteboard.general.types ?? []
+                    let hasImageType = types.contains(NSPasteboard.PasteboardType.tiff) ||
+                                      types.contains(NSPasteboard.PasteboardType.png) ||
+                                      types.contains(NSPasteboard.PasteboardType("public.jpeg")) ||
+                                      types.contains(NSPasteboard.PasteboardType("public.image"))
+                    
+                    // Check for Image FIRST (websites often put both image and text on pasteboard)
+                    // But ONLY if there's actually an image type in the pasteboard
+                    if hasImageType, let image = NSImage(pasteboard: NSPasteboard.general) {
+                        // Convert to PNG data
+                        if let tiffData = image.tiffRepresentation,
+                           let bitmap = NSBitmapImageRep(data: tiffData),
+                           let pngData = bitmap.representation(using: .png, properties: [:]) {
+                            
+                            // Use SHA256 hash of image data as filename for deduplication
+                            let hashData = SHA256.hash(data: pngData)
+                            let hashString = hashData.compactMap { String(format: "%02x", $0) }.joined()
+                            let filename = "images/\(hashString).png"
+                            
+                            if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                                let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                                
+                                // Only write if file doesn't exist (deduplication)
+                                if !FileManager.default.fileExists(atPath: fileURL.path) {
+                                    try? pngData.write(to: fileURL)
+                                }
+                                
+                                let newItemData = ClipboardData.image(filename)
+                                let sourceAppName = NSWorkspace.shared.frontmostApplication?.localizedName
+                                
+                                // Privacy check for image (app name only)
+                                if settings.isBlocked(app: sourceAppName, host: nil) {
+                                    continue
+                                }
+                                
+                                // Check for existing item to increment count
+                                var existingCount = 1
+                                if let existing = history.first(where: { $0.data == newItemData }) {
+                                    existingCount = existing.copyCount + 1
+                                }
+                                
+                                // Remove existing duplicate
+                                history.removeAll { $0.data == newItemData }
+                                
+                                let newItem = ClipboardItem(
+                                    id: UUID(),
+                                    data: newItemData,
+                                    createdAt: Date(),
+                                    sourceApp: sourceAppName,
+                                    copyCount: existingCount
+                                )
+                                history.insert(newItem, at: 0)
+                            }
+                        }
+
+                    } else if let copiedString = NSPasteboard.general.string(forType: .string) {
+
+                        // Only check for text if no image was found
                         let trimmedString = copiedString.trimmingCharacters(in: .whitespacesAndNewlines)
                         
                         if !trimmedString.isEmpty {
@@ -234,6 +310,7 @@ class ClipboardManager: ObservableObject {
     }
     
     private func isHexColor(_ string: String) -> Bool {
+
         let pattern = "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
         let regex = try! NSRegularExpression(pattern: pattern)
         return regex.firstMatch(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count)) != nil
@@ -246,6 +323,14 @@ class ClipboardManager: ObservableObject {
             NSPasteboard.general.setString(string, forType: .string)
         case .color(let hex):
             NSPasteboard.general.setString(hex, forType: .string)
+        case .image(let filename):
+            if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                if let image = NSImage(contentsOf: fileURL) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.writeObjects([image])
+                }
+            }
         }
     }
     
@@ -546,7 +631,14 @@ struct ContentView: View {
     }
     
     private func simulatePaste() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        // Check for accessibility permissions first
+        guard checkAccessibilityPermissions() else {
+            showPermissionError()
+            return
+        }
+        
+        // Reduced delay from 0.3s to 0.1s for faster paste
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             let source = CGEventSource(stateID: .hidSystemState)
             
             let vKeyCode: CGKeyCode = 9 // 9 is 'v'
@@ -559,6 +651,40 @@ struct ContentView: View {
             
             keyDown?.post(tap: .cghidEventTap)
             keyUp?.post(tap: .cghidEventTap)
+        }
+    }
+    
+    private func checkAccessibilityPermissions() -> Bool {
+        // Check if the app is trusted for accessibility
+        let trusted = AXIsProcessTrusted()
+        return trusted
+    }
+    
+    private func showPermissionError() {
+        let alert = NSAlert()
+        alert.messageText = "Accessibility Permission Required"
+        alert.informativeText = """
+Clipy needs Accessibility permission to paste into other apps.
+
+How to enable:
+1. Open System Settings
+2. Go to Privacy & Security → Accessibility
+3. Find and enable "Clipy" in the list
+4. Restart Clipy
+
+Alternatively, you can use Cmd+V manually after copying.
+"""
+        alert.alertStyle = .warning
+
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            // Open System Settings to Privacy & Security > Accessibility
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                NSWorkspace.shared.open(url)
+            }
         }
     }
     
@@ -593,13 +719,29 @@ struct ContentView: View {
     
     private func deleteEntry() {
         guard let selectedItemID else { return }
+        if let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) {
+            deleteImageFileIfNeeded(item: item)
+        }
         clipboardManager.history.removeAll { $0.id == selectedItemID }
         self.selectedItemID = nil
     }
     
     private func deleteAllEntries() {
+        // Delete all image files
+        for item in clipboardManager.history {
+            deleteImageFileIfNeeded(item: item)
+        }
         clipboardManager.history.removeAll()
         selectedItemID = nil
+    }
+    
+    private func deleteImageFileIfNeeded(item: ClipboardItem) {
+        if case .image(let filename) = item.data {
+            if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                try? FileManager.default.removeItem(at: fileURL)
+            }
+        }
     }
 }
 
@@ -612,10 +754,34 @@ struct LuminaRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: item.smartType.icon)
-                .font(.system(size: 14)) // Icons keep system font usually, or specific icon font
-                .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
-                .frame(width: 20, height: 20)
+            // Show thumbnail for images
+            if case .image(let filename) = item.data {
+                if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                    let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                    if let nsImage = NSImage(contentsOf: fileURL) {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 32, height: 32)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    } else {
+                        Image(systemName: item.smartType.icon)
+                            .font(.system(size: 14))
+                            .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
+                            .frame(width: 20, height: 20)
+                    }
+                } else {
+                    Image(systemName: item.smartType.icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
+                        .frame(width: 20, height: 20)
+                }
+            } else {
+                Image(systemName: item.smartType.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
+                    .frame(width: 20, height: 20)
+            }
             
             Text(item.textRepresentation)
                 .font(.custom("Roboto", size: 13))
@@ -709,13 +875,38 @@ struct LuminaDetailStage: View {
                             .stroke(Color.accentColor.opacity(0.3), lineWidth: 1) // Subtle focus ring
                     )
             } else {
-                ScrollView {
-                    Text(item.textRepresentation)
-                        .font(item.smartType == .code ? .system(size: 13, design: .monospaced) : .custom("Roboto", size: 14))
-                        .foregroundColor(.luminaTextPrimary)
-                        .lineSpacing(6)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .textSelection(.enabled)
+                // Display image or text
+                if case .image(let filename) = item.data {
+                    if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                        let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                        if let nsImage = NSImage(contentsOf: fileURL) {
+                            GeometryReader { geometry in
+                                ScrollView([.horizontal, .vertical]) {
+                                    Image(nsImage: nsImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
+                                        .cornerRadius(8)
+                                }
+                            }
+                        } else {
+                            Text("Image not found")
+                                .foregroundColor(.luminaTextSecondary)
+                        }
+                    } else {
+                        Text("Error loading image")
+                            .foregroundColor(.luminaTextSecondary)
+                    }
+
+                } else {
+                    ScrollView {
+                        Text(item.textRepresentation)
+                            .font(item.smartType == .code ? .system(size: 13, design: .monospaced) : .custom("Roboto", size: 14))
+                            .foregroundColor(.luminaTextPrimary)
+                            .lineSpacing(6)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
                 }
             }
             
@@ -753,10 +944,23 @@ struct LuminaDetailStage: View {
                         MetadataRow(icon: "arrow.up.left.and.arrow.down.right", label: "Size", value: sizeString)
                     }
                     
+                    if case .image(let filename) = item.data {
+                        // Show image dimensions
+                        if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                            let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+                            if let nsImage = NSImage(contentsOf: fileURL) {
+                                let width = Int(nsImage.size.width)
+                                let height = Int(nsImage.size.height)
+                                MetadataRow(icon: "arrow.up.left.and.arrow.down.right", label: "Size", value: "\(width) × \(height)")
+                            }
+                        }
+                    }
+                    
                     MetadataRow(icon: "calendar", label: "Date", value: item.createdAt.formatted(date: .numeric, time: .shortened))
                     MetadataRow(icon: "folder", label: "Type", value: item.smartType.title)
                 }
                 .padding(.vertical, 8)
+
                 .background(Color.obsidianSurface)
                 .cornerRadius(8)
                 .overlay(
@@ -835,6 +1039,7 @@ extension SmartContentType {
         case .code: return "Code"
         case .email: return "Contact"
         case .color: return "Color"
+        case .image: return "Image"
         }
     }
 }

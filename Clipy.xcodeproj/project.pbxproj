@@ -6,9 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		712DC0EA60FC4E07EB863DC8 /* ClipyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE1751E36313356FDE941B8 /* ClipyUITests.swift */; };
+		DF4AC087948C67D28824E523 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38BD43E09D074463E8BD1DCB /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		38BD43E09D074463E8BD1DCB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		59D2511E2520A778912923FB /* ClipyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7CE1751E36313356FDE941B8 /* ClipyUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClipyUITests.swift; path = ClipyUITests/ClipyUITests.swift; sourceTree = "<group>"; };
+		85B3FB63C10CC63197847EA7 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = ClipyUITests/Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1592663B2EC8072A00A0F75C /* Clipy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = Clipy;
 			sourceTree = "<group>";
 		};
@@ -22,6 +36,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5DFB81F98F9E4226C69D7B29 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF4AC087948C67D28824E523 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -29,12 +51,15 @@
 			isa = PBXGroup;
 			children = (
 				159266932EC80C6200A0F75C /* Recovered References */,
+				5636C61BBAB10852404ECE09 /* Frameworks */,
+				51003CD8827DEE1ACE19DA4C /* ClipyUITests */,
 			);
 			sourceTree = "<group>";
 		};
 		1592663A2EC8072A00A0F75C /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				59D2511E2520A778912923FB /* ClipyUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -45,6 +70,31 @@
 				1592663B2EC8072A00A0F75C /* Clipy */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		51003CD8827DEE1ACE19DA4C /* ClipyUITests */ = {
+			isa = PBXGroup;
+			children = (
+				7CE1751E36313356FDE941B8 /* ClipyUITests.swift */,
+				85B3FB63C10CC63197847EA7 /* Info.plist */,
+			);
+			name = ClipyUITests;
+			sourceTree = "<group>";
+		};
+		5636C61BBAB10852404ECE09 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				81589CF02C3F9966370420A0 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		81589CF02C3F9966370420A0 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				38BD43E09D074463E8BD1DCB /* Foundation.framework */,
+			);
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -66,10 +116,25 @@
 				1592663B2EC8072A00A0F75C /* Clipy */,
 			);
 			name = Clipy;
-			packageProductDependencies = (
-			);
 			productName = Clipy;
 			productType = "com.apple.product-type.application";
+		};
+		17CF3B21B3A3C49B39A61F50 /* ClipyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B0BA2542B9755AA844B36BE /* Build configuration list for PBXNativeTarget "ClipyUITests" */;
+			buildPhases = (
+				ACB021B9D73499D343EA11D2 /* Sources */,
+				5DFB81F98F9E4226C69D7B29 /* Frameworks */,
+				FEAFCE261CFC1637E82DD52D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClipyUITests;
+			productName = ClipyUITests;
+			productReference = 59D2511E2520A778912923FB /* ClipyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -101,12 +166,20 @@
 			projectRoot = "";
 			targets = (
 				159266382EC8072A00A0F75C /* Clipy */,
+				17CF3B21B3A3C49B39A61F50 /* ClipyUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		159266372EC8072A00A0F75C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FEAFCE261CFC1637E82DD52D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -123,9 +196,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ACB021B9D73499D343EA11D2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				712DC0EA60FC4E07EB863DC8 /* ClipyUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		0194CC7AF4EF7B8887C38DE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = ClipyUITests/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matrixcode.ClipyUITests;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Clipy;
+			};
+			name = Release;
+		};
 		159266422EC8072B00A0F75C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -304,6 +395,16 @@
 			};
 			name = Release;
 		};
+		B1173C67FC17123A81CF350E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = ClipyUITests/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matrixcode.ClipyUITests;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Clipy;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -321,6 +422,15 @@
 			buildConfigurations = (
 				159266452EC8072B00A0F75C /* Debug */,
 				159266462EC8072B00A0F75C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B0BA2542B9755AA844B36BE /* Build configuration list for PBXNativeTarget "ClipyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0194CC7AF4EF7B8887C38DE5 /* Release */,
+				B1173C67FC17123A81CF350E /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
