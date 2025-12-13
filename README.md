@@ -17,6 +17,16 @@ You can download the latest version from the [Releases](https://github.com/kowsh
 2. Unzip the file.
 3. Drag `Clipy.app` to your Applications folder.
 
+> [!NOTE]
+> **"App is damaged and can't be opened" Error**
+> Since this app is not signed with a paid Apple Developer ID, macOS may block it. To fix this:
+> 1. Open Terminal.
+> 2. Run the following command:
+>    ```bash
+>    xattr -cr /Applications/Clipy.app
+>    ```
+> 3. You should now be able to open the app.
+
 ### From Source
 1. Clone the repository:
    ```bash

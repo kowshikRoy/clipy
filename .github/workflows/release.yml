@@ -26,6 +26,10 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             clean build
 
+      - name: Ad-hoc Sign
+        run: |
+          codesign --force --deep --sign - build/Build/Products/Release/Clipy.app
+
       - name: Compress App
         run: |
           cd build/Build/Products/Release
