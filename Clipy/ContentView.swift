@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import Carbon
 import Combine
 
 // MARK: - Data Models
@@ -379,6 +380,9 @@ struct ContentView: View {
                         .font(.custom("Roboto", size: 14))
                         .fontWeight(.medium)
                         .foregroundColor(.luminaTextPrimary)
+                        .onSubmit {
+                            pasteToApp()
+                        }
                 }
                 .padding(8)
                 .background(Color.obsidianSurface)
@@ -518,17 +522,31 @@ struct ContentView: View {
     // MARK: - Actions
     
     private func pasteToApp() {
-        guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
+        let itemToPaste: ClipboardItem?
+        
+        if let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) {
+            itemToPaste = item
+        } else if let firstItem = filteredHistory.first {
+            itemToPaste = firstItem
+        } else {
+            itemToPaste = nil
+        }
+        
+        guard let item = itemToPaste else { return }
         // 1. Copy to pasteboard
         clipboardManager.copyToPasteboard(item: item)
-        // 2. Hide Clipy
-        NSApplication.shared.hide(nil)
+        // 2. Switch Focus Explicitly
+        if let previousApp = focusManager.previousApp {
+            previousApp.activate(options: .activateIgnoringOtherApps)
+        } else {
+            NSApplication.shared.hide(nil)
+        }
         // 3. Simulate Cmd+V
         simulatePaste()
     }
     
     private func simulatePaste() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let source = CGEventSource(stateID: .hidSystemState)
             
             let vKeyCode: CGKeyCode = 9 // 9 is 'v'

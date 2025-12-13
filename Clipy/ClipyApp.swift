@@ -13,9 +13,12 @@ struct ClipyApp: App {
     @StateObject private var appSettings = AppSettings()
     @StateObject private var appFocusManager = AppFocusManager()
     
+    @Environment(\.openWindow) private var openWindow
+
     var body: some Scene {
         WindowGroup {
             ContentView(settings: appSettings, focusManager: appFocusManager)
+                // ... (existing modifiers) ...
                 .frame(width: 1000, height: 600)
                 .onAppear {
                     if let window = NSApplication.shared.windows.first {
@@ -40,9 +43,31 @@ struct ClipyApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         
-        Settings {
-            SettingsView(settings: appSettings)
+        MenuBarExtra("Clipy", systemImage: "paperclip") {
+            Button("Show Clipy") {
+                toggleAppVisibility()
+            }
+            .keyboardShortcut("v", modifiers: [.command, .shift])
+            
+            Button("Settings") {
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "settings")
+            }
+            .keyboardShortcut(",", modifiers: .command)
+             
+            Divider()
+            
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+            .keyboardShortcut("q")
         }
+        
+        WindowGroup("Settings", id: "settings") {
+            SettingsView(settings: appSettings)
+                .frame(minWidth: 650, minHeight: 400)
+        }
+        .windowResizability(.contentSize)
     }
     
     private func setupHotKey() {

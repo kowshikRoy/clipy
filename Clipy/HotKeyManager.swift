@@ -1,4 +1,3 @@
-
 import Cocoa
 import Carbon
 
@@ -51,7 +50,8 @@ class HotKeyManager {
         
         var hotKeyID = EventHotKeyID(signature: OSType(0x434C5059), id: 1) // CLPY
         
-        let status = RegisterEventHotKey(
+        var status = noErr
+        status = RegisterEventHotKey(
             keyCode,
             modifiers,
             hotKeyID,
@@ -62,8 +62,6 @@ class HotKeyManager {
         
         if status != noErr {
             print("Failed to register hotkey: \(status)")
-        } else {
-             print("Successfully registered hotkey")
         }
     }
     
