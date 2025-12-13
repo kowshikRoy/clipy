@@ -21,6 +21,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     let data: ClipboardData
     let createdAt: Date
     let sourceApp: String?
+    var isPinned: Bool = false
 
     var textRepresentation: String {
         switch data {
@@ -239,6 +240,21 @@ class ClipboardManager: ObservableObject {
         }
     }
     
+    func togglePin(for itemID: UUID) {
+        guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
+        history[index].isPinned.toggle()
+    }
+    
+    func updateItem(id: UUID, newText: String) {
+        guard let index = history.firstIndex(where: { $0.id == id }) else { return }
+        var item = history[index]
+        // Currently only supporting updating text content
+        if case .text(_, let sourceURL) = item.data {
+             item = ClipboardItem(id: item.id, data: .text(newText, sourceURL: sourceURL), createdAt: item.createdAt, sourceApp: item.sourceApp, isPinned: item.isPinned)
+             history[index] = item
+        }
+    }
+    
     private func loadHistory() {
         guard let historyFileURL, let data = try? Data(contentsOf: historyFileURL) else { return }
         do {
@@ -272,21 +288,32 @@ class ClipboardManager: ObservableObject {
 
 struct ContentView: View {
     @ObservedObject var appSettings: AppSettings
+    @ObservedObject var focusManager: AppFocusManager
     @StateObject private var clipboardManager: ClipboardManager
     @State private var selectedItemID: ClipboardItem.ID?
     @State private var searchText = ""
+    @State private var isShowingEditSheet = false
+    @State private var editingItem: ClipboardItem?
+    @State private var editingText = ""
     
-    init(settings: AppSettings) {
+    init(settings: AppSettings, focusManager: AppFocusManager) {
         self.appSettings = settings
+        self.focusManager = focusManager
         _clipboardManager = StateObject(wrappedValue: ClipboardManager(settings: settings))
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
             // MARK: - Sidebar (Timeline)
             timelineView
                 .frame(width: 320)
                 .background(Color.obsidianBackground.opacity(0.6))
+            
+            Rectangle()
+                .fill(Color.obsidianBorder)
+                .frame(width: 1)
+                .ignoresSafeArea(edges: .vertical)
             
             // MARK: - Detail Stage
             ZStack {
@@ -299,8 +326,31 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        
+        FooterView(
+            focusManager: focusManager,
+            onPasteToApp: pasteToApp,
+            onCopyToClipboard: copyToClipboard,
+            onEdit: editEntry,
+            onPin: pinEntry,
+            onDelete: deleteEntry,
+            onDeleteAll: deleteAllEntries
+        )
+        .sheet(isPresented: $isShowingEditSheet) {
+            if let item = editingItem {
+                EditView(text: $editingText, onSave: { newText in
+                    clipboardManager.updateItem(id: item.id, newText: newText)
+                    isShowingEditSheet = false
+                }, onCancel: {
+                    isShowingEditSheet = false
+                })
+            }
         }
-        .background(VisualEffectView().ignoresSafeArea())
+    }
+    .background(VisualEffectView().ignoresSafeArea())
         .ignoresSafeArea()
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -311,6 +361,7 @@ struct ContentView: View {
             clipboardManager.startMonitoring()
         }
     }
+
     
     // MARK: - Timeline View
     private var timelineView: some View {
@@ -341,13 +392,31 @@ struct ContentView: View {
             
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(filteredHistory) { item in
-                            LuminaRow(item: item, isSelected: selectedItemID == item.id)
-                                .id(item.id) // Important for ScrollViewReader
-                                .onTapGesture {
-                                    selectedItemID = item.id
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        // Pinned Section
+                        if !pinnedItems.isEmpty {
+                            Section(header: sectionHeader(title: "Pinned", icon: "pin.fill")) {
+                                ForEach(pinnedItems) { item in
+                                    LuminaRow(item: item, isSelected: selectedItemID == item.id)
+                                        .id(item.id)
+                                        .onTapGesture {
+                                            selectedItemID = item.id
+                                        }
                                 }
+                            }
+                        }
+                        
+                        // Recent Section
+                        if !recentItems.isEmpty {
+                            Section(header: sectionHeader(title: "Recent", icon: "clock")) {
+                                ForEach(recentItems) { item in
+                                    LuminaRow(item: item, isSelected: selectedItemID == item.id)
+                                        .id(item.id)
+                                        .onTapGesture {
+                                            selectedItemID = item.id
+                                        }
+                                }
+                            }
                         }
                     }
                     .padding(.vertical, 12)
@@ -366,6 +435,30 @@ struct ContentView: View {
                 )
             }
         }
+    }
+    
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.luminaTextSecondary)
+            Text(title.uppercased())
+                .font(.custom("Roboto", size: 11))
+                .fontWeight(.bold)
+                .foregroundColor(.luminaTextSecondary)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.clear)
+    }
+    
+    private var pinnedItems: [ClipboardItem] {
+        filteredHistory.filter { $0.isPinned }
+    }
+    
+    private var recentItems: [ClipboardItem] {
+        filteredHistory.filter { !$0.isPinned }
     }
     
     private var filteredHistory: [ClipboardItem] {
@@ -414,6 +507,67 @@ struct ContentView: View {
                 .foregroundColor(.luminaTextSecondary)
         }
     }
+
+    
+    // MARK: - Actions
+    
+    private func pasteToApp() {
+        guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
+        // 1. Copy to pasteboard
+        clipboardManager.copyToPasteboard(item: item)
+        // 2. Hide Clipy
+        NSApplication.shared.hide(nil)
+        // 3. Simulate Cmd+V
+        simulatePaste()
+    }
+    
+    private func simulatePaste() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let source = CGEventSource(stateID: .hidSystemState)
+            
+            let vKeyCode: CGKeyCode = 9 // 9 is 'v'
+            
+            let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true)
+            keyDown?.flags = .maskCommand
+            
+            let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)
+            keyUp?.flags = .maskCommand
+            
+            keyDown?.post(tap: .cghidEventTap)
+            keyUp?.post(tap: .cghidEventTap)
+        }
+    }
+    
+    private func copyToClipboard() {
+        guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
+        clipboardManager.copyToPasteboard(item: item)
+        // Show toast or slight feedback?
+    }
+    
+    private func editEntry() {
+        guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
+        if case .text(let text, _) = item.data {
+            editingItem = item
+            editingText = text
+            isShowingEditSheet = true
+        }
+    }
+    
+    private func pinEntry() {
+        guard let selectedItemID else { return }
+        clipboardManager.togglePin(for: selectedItemID)
+    }
+    
+    private func deleteEntry() {
+        guard let selectedItemID else { return }
+        clipboardManager.history.removeAll { $0.id == selectedItemID }
+        self.selectedItemID = nil
+    }
+    
+    private func deleteAllEntries() {
+        clipboardManager.history.removeAll()
+        selectedItemID = nil
+    }
 }
 
 // MARK: - Supporting Views
@@ -444,7 +598,7 @@ struct LuminaRow: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isSelected ? Color.white.opacity(0.15) : (isHovering ? Color.obsidianSurface.opacity(0.5) : Color.clear))
+                .fill(isSelected ? Color.white.opacity(0.15) : (isHovering ? Color.white.opacity(0.08) : Color.clear))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)

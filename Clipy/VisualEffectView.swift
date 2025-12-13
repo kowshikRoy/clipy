@@ -9,11 +9,14 @@ import SwiftUI
 import AppKit
 
 struct VisualEffectView: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .hudWindow
+    var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.blendingMode = .behindWindow
+        view.blendingMode = blendingMode
         view.state = .active
-        view.material = .hudWindow
+        view.material = material
         view.autoresizingMask = [.width, .height]
         return view
     }

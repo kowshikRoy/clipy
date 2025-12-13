@@ -12,9 +12,9 @@ extension Color {
     static let obsidianBackground = Color(nsColor: NSColor(hex: "#050505").withAlphaComponent(0.85)) // Deep translucent black
     static let obsidianSurface = Color(nsColor: NSColor(hex: "#1A1A1A").withAlphaComponent(0.5)) // Lighter surface
     static let obsidianBorder = Color(nsColor: NSColor(hex: "#FFFFFF").withAlphaComponent(0.08)) // Subtle rim light
-    static let luminaTextPrimary = Color(nsColor: NSColor(hex: "#EDEDED"))
-    static let luminaTextSecondary = Color(nsColor: NSColor(hex: "#A0A0A0"))
-    static let luminaAccent = Color(nsColor: NSColor(hex: "#D4D4D4")) // Default silver glow
+    static let luminaTextPrimary = Color(nsColor: NSColor(hex: "#FFFFFF"))
+    static let luminaTextSecondary = Color(nsColor: NSColor(hex: "#CCCCCC"))
+    static let luminaAccent = Color(nsColor: NSColor(hex: "#E5E5E5")) // Default silver glow
 
 }
 

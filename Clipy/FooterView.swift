@@ -1,0 +1,172 @@
+import SwiftUI
+
+struct FooterView: View {
+    @ObservedObject var focusManager: AppFocusManager
+    
+    // Actions for the menu
+    let onPasteToApp: () -> Void
+    let onCopyToClipboard: () -> Void
+    let onEdit: () -> Void
+    let onPin: () -> Void
+    let onDelete: () -> Void
+    let onDeleteAll: () -> Void
+    
+    @State private var showActionsMenu = false
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Left: Label
+            HStack(spacing: 8) {
+                Image(systemName: "clipboard")
+                    .foregroundColor(.white) // Or custom color if needed
+                Text("Clipy")
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextSecondary)
+            }
+            
+            Spacer()
+            
+            // Right: Shortcuts & Actions
+            HStack(spacing: 16) {
+                // Paste to App
+                Button(action: onPasteToApp) {
+                    HStack(spacing: 6) {
+                        Text("Paste to \(focusManager.previousApp?.localizedName ?? "App")")
+                            .font(.custom("Roboto", size: 13))
+                            .fontWeight(.medium)
+                            .foregroundColor(.luminaTextPrimary)
+                        
+                        Image(systemName: "return")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.black.opacity(0.6))
+                            .frame(width: 20, height: 20)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // Actions Button
+                Button(action: { showActionsMenu = true }) {
+                    HStack(spacing: 6) {
+                        Text("Actions")
+                            .font(.custom("Roboto", size: 13))
+                            .fontWeight(.medium)
+                            .foregroundColor(.luminaTextPrimary)
+                        
+                        HStack(spacing: 2) {
+                            Text("⌘")
+                                .font(.system(size: 11))
+                            Text("K")
+                                .font(.system(size: 11))
+                        }
+                        .foregroundColor(.black.opacity(0.6))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(4)
+                    }
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut("k", modifiers: [.command]) // Cmd+K trigger
+                .popover(isPresented: $showActionsMenu, arrowEdge: .bottom) {
+                    ActionsMenu(
+                        targetAppName: focusManager.previousApp?.localizedName ?? "App",
+                        onPasteToApp: {
+                            showActionsMenu = false
+                            onPasteToApp()
+                        },
+                        onCopyToClipboard: {
+                            showActionsMenu = false
+                            onCopyToClipboard()
+                        },
+                        onEdit: {
+                            showActionsMenu = false
+                            onEdit()
+                        },
+                        onPin: {
+                            showActionsMenu = false
+                            onPin()
+                        },
+                        onDelete: {
+                            showActionsMenu = false
+                            onDelete()
+                        },
+                        onDeleteAll: {
+                            showActionsMenu = false
+                            onDeleteAll()
+                        }
+                    )
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.obsidianSurface.opacity(0.9)) // Darker footer background
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color.obsidianBorder),
+            alignment: .top
+        )
+    }
+}
+
+struct ActionsMenu: View {
+    let targetAppName: String
+    let onPasteToApp: () -> Void
+    let onCopyToClipboard: () -> Void
+    let onEdit: () -> Void
+    let onPin: () -> Void
+    let onDelete: () -> Void
+    let onDeleteAll: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            MenuButton(icon: "arrow.turn.up.left", text: "Paste to \(targetAppName)", shortcut: "↵", action: onPasteToApp)
+            MenuButton(icon: "doc.on.doc", text: "Copy to Clipboard", shortcut: "⌘↵", action: onCopyToClipboard)
+            Divider().background(Color.gray.opacity(0.3))
+            MenuButton(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit)
+            MenuButton(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
+            MenuButton(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete)
+            Divider().background(Color.gray.opacity(0.3))
+            MenuButton(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll)
+        }
+        .padding(8)
+        .frame(width: 200)
+        .background(Color(nsColor: NSColor.windowBackgroundColor))
+    }
+}
+
+struct MenuButton: View {
+    let icon: String
+    let text: String
+    let shortcut: String
+    var color: Color = .primary
+    let action: () -> Void
+    
+    @State private var isHovering = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 16)
+                Text(text)
+                Spacer()
+                if !shortcut.isEmpty {
+                    Text(shortcut)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .foregroundColor(color)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(isHovering ? Color.accentColor.opacity(0.2) : Color.clear)
+            .cornerRadius(4)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+    }
+}

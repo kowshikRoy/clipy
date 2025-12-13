@@ -11,10 +11,11 @@ import AppKit
 @main
 struct ClipyApp: App {
     @StateObject private var appSettings = AppSettings()
+    @StateObject private var appFocusManager = AppFocusManager()
     
     var body: some Scene {
         WindowGroup {
-            ContentView(settings: appSettings)
+            ContentView(settings: appSettings, focusManager: appFocusManager)
                 .frame(width: 1000, height: 600)
                 .onAppear {
                     if let window = NSApplication.shared.windows.first {
