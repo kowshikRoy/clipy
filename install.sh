@@ -28,9 +28,14 @@ RELEASE_JSON=$(curl -s https://api.github.com/repos/$REPO/releases/latest)
 
 # Check if we got a valid response
 if echo "$RELEASE_JSON" | grep -q "Not Found"; then
-    echo -e "${RED}Error: No release found for $REPO.${NC}"
-    echo "Please check https://github.com/$REPO/releases for manual installation."
-    exit 1
+    echo "Latest release not found. Checking for nightly release..."
+    RELEASE_JSON=$(curl -s https://api.github.com/repos/$REPO/releases/tags/nightly)
+
+    if echo "$RELEASE_JSON" | grep -q "Not Found"; then
+        echo -e "${RED}Error: No release found for $REPO (checked latest and nightly).${NC}"
+        echo "Please check https://github.com/$REPO/releases for manual installation."
+        exit 1
+    fi
 fi
 
 # Extract download URL for the zip file
