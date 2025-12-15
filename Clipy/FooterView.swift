@@ -8,6 +8,7 @@ struct FooterView: View {
     let onCopyToClipboard: () -> Void
     let onEdit: () -> Void
     let onPin: () -> Void
+    let onAddMetadata: () -> Void
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
     
@@ -98,6 +99,10 @@ struct FooterView: View {
                             showActionsMenu = false
                             onPin()
                         },
+                        onAddMetadata: {
+                            showActionsMenu = false
+                            onAddMetadata()
+                        },
                         onDelete: {
                             showActionsMenu = false
                             onDelete()
@@ -128,6 +133,7 @@ struct ActionsMenu: View {
     let onCopyToClipboard: () -> Void
     let onEdit: () -> Void
     let onPin: () -> Void
+    let onAddMetadata: () -> Void
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
     
@@ -138,6 +144,7 @@ struct ActionsMenu: View {
             Divider().background(Color.gray.opacity(0.3))
             MenuButton(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit)
             MenuButton(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
+            MenuButton(icon: "tag", text: "Add Metadata", shortcut: "", action: onAddMetadata)
             MenuButton(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete)
             Divider().background(Color.gray.opacity(0.3))
             MenuButton(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll)
