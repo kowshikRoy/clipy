@@ -448,7 +448,10 @@ struct ContentView: View {
         )
         .task {
             clipboardManager.startMonitoring()
+            ensureSelection()
         }
+        .onChange(of: clipboardManager.history) { _ in ensureSelection() }
+        .onChange(of: searchText) { _ in ensureSelection() }
     }
 
     
@@ -592,12 +595,24 @@ struct ContentView: View {
         clipboardManager.history.first { $0.id == selectedItemID }
     }
     
+    private func ensureSelection() {
+        if let selectedItemID, filteredHistory.contains(where: { $0.id == selectedItemID }) {
+            return
+        }
+
+        if let firstItem = filteredHistory.first {
+            selectedItemID = firstItem.id
+        } else {
+            selectedItemID = nil
+        }
+    }
+
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "sparkles")
                 .font(.system(size: 40))
                 .foregroundColor(.luminaTextSecondary.opacity(0.5))
-            Text("Select a clip to illuminate")
+            Text("No clips found")
                 .font(.system(size: 16, weight: .light))
                 .foregroundColor(.luminaTextSecondary)
         }
@@ -719,11 +734,23 @@ Alternatively, you can use Cmd+V manually after copying.
     
     private func deleteEntry() {
         guard let selectedItemID else { return }
+
+        let history = filteredHistory
+        var nextID: UUID?
+
+        if let index = history.firstIndex(where: { $0.id == selectedItemID }) {
+            if index + 1 < history.count {
+                nextID = history[index + 1].id
+            } else if index - 1 >= 0 {
+                nextID = history[index - 1].id
+            }
+        }
+
         if let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) {
             deleteImageFileIfNeeded(item: item)
         }
         clipboardManager.history.removeAll { $0.id == selectedItemID }
-        self.selectedItemID = nil
+        self.selectedItemID = nextID
     }
     
     private func deleteAllEntries() {
