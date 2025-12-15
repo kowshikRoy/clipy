@@ -29,6 +29,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     let sourceApp: String?
     var isPinned: Bool = false
     var copyCount: Int = 1
+    var customMetadata: String? = nil
 
     var textRepresentation: String {
         switch data {
@@ -344,9 +345,16 @@ class ClipboardManager: ObservableObject {
         var item = history[index]
         // Currently only supporting updating text content
         if case .text(_, let sourceURL) = item.data {
-             item = ClipboardItem(id: item.id, data: .text(newText, sourceURL: sourceURL), createdAt: item.createdAt, sourceApp: item.sourceApp, isPinned: item.isPinned, copyCount: item.copyCount)
+            item = ClipboardItem(id: item.id, data: .text(newText, sourceURL: sourceURL), createdAt: item.createdAt, sourceApp: item.sourceApp, isPinned: item.isPinned, copyCount: item.copyCount, customMetadata: item.customMetadata)
              history[index] = item
         }
+    }
+
+    func updateItemMetadata(id: UUID, metadata: String?) {
+        guard let index = history.firstIndex(where: { $0.id == id }) else { return }
+        var item = history[index]
+        item.customMetadata = metadata
+        history[index] = item
     }
     
     private func loadHistory() {
@@ -389,6 +397,10 @@ struct ContentView: View {
     @State private var isEditing = false
     @State private var editingText = ""
     
+    // Metadata State
+    @State private var isAddingMetadata = false
+    @State private var metadataInput = ""
+
     init(settings: AppSettings, focusManager: AppFocusManager) {
         self.appSettings = settings
         self.focusManager = focusManager
@@ -423,6 +435,63 @@ struct ContentView: View {
                 } else {
                     emptyState
                 }
+
+                // Metadata Input Overlay
+                if isAddingMetadata {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            isAddingMetadata = false
+                        }
+
+                    VStack(spacing: 16) {
+                        Text(metadataInput.isEmpty ? "Add Metadata" : "Edit Metadata")
+                            .font(.custom("Roboto", size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.luminaTextPrimary)
+
+                        TextField("Enter metadata...", text: $metadataInput)
+                            .textFieldStyle(.plain)
+                            .padding(8)
+                            .background(Color.obsidianSurface)
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.obsidianBorder, lineWidth: 1)
+                            )
+                            .foregroundColor(.luminaTextPrimary)
+                            .frame(width: 250)
+                            .onSubmit {
+                                saveMetadata()
+                            }
+
+                        HStack(spacing: 12) {
+                            Button("Cancel") {
+                                isAddingMetadata = false
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.luminaTextSecondary)
+
+                            Button("Save") {
+                                saveMetadata()
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentColor)
+                            .cornerRadius(6)
+                        }
+                    }
+                    .padding(24)
+                    .background(Color.obsidianBackground)
+                    .cornerRadius(12)
+                    .shadow(radius: 20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.obsidianBorder, lineWidth: 1)
+                    )
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -435,8 +504,11 @@ struct ContentView: View {
             onCopyToClipboard: copyToClipboard,
             onEdit: editEntry,
             onPin: pinEntry,
+            onAddMetadata: addMetadata,
             onDelete: deleteEntry,
-            onDeleteAll: deleteAllEntries
+            onDeleteAll: deleteAllEntries,
+            onDeleteMetadata: deleteMetadata,
+            hasMetadata: selectedItem?.customMetadata != nil
         )
     }
     .background(VisualEffectView().ignoresSafeArea())
@@ -731,6 +803,23 @@ Alternatively, you can use Cmd+V manually after copying.
         guard let selectedItemID else { return }
         clipboardManager.togglePin(for: selectedItemID)
     }
+
+    private func addMetadata() {
+        guard let selectedItemID, let item = clipboardManager.history.first(where: { $0.id == selectedItemID }) else { return }
+        metadataInput = item.customMetadata ?? ""
+        isAddingMetadata = true
+    }
+
+    private func saveMetadata() {
+        guard let selectedItemID else { return }
+        clipboardManager.updateItemMetadata(id: selectedItemID, metadata: metadataInput.isEmpty ? nil : metadataInput)
+        isAddingMetadata = false
+    }
+
+    private func deleteMetadata() {
+        guard let selectedItemID else { return }
+        clipboardManager.updateItemMetadata(id: selectedItemID, metadata: nil)
+    }
     
     private func deleteEntry() {
         guard let selectedItemID else { return }
@@ -952,6 +1041,10 @@ struct LuminaDetailStage: View {
                 VStack(spacing: 0) {
                     if let source = item.sourceApp {
                         MetadataRow(icon: "app.dashed", label: "Source", value: source, appIcon: iconForApp(source))
+                    }
+
+                    if let metadata = item.customMetadata {
+                        MetadataRow(icon: "tag", label: "Note", value: metadata)
                     }
                     
                     if item.copyCount > 1 {

@@ -8,8 +8,11 @@ struct FooterView: View {
     let onCopyToClipboard: () -> Void
     let onEdit: () -> Void
     let onPin: () -> Void
+    let onAddMetadata: () -> Void
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
+    let onDeleteMetadata: () -> Void // New callback
+    let hasMetadata: Bool // New state check
     
     @State private var showActionsMenu = false
 
@@ -82,6 +85,7 @@ struct FooterView: View {
                 .popover(isPresented: $showActionsMenu, arrowEdge: .bottom) {
                     ActionsMenu(
                         targetAppName: focusManager.previousApp?.localizedName ?? "App",
+                        hasMetadata: hasMetadata,
                         onPasteToApp: {
                             showActionsMenu = false
                             onPasteToApp()
@@ -97,6 +101,14 @@ struct FooterView: View {
                         onPin: {
                             showActionsMenu = false
                             onPin()
+                        },
+                        onAddMetadata: {
+                            showActionsMenu = false
+                            onAddMetadata()
+                        },
+                        onDeleteMetadata: {
+                            showActionsMenu = false
+                            onDeleteMetadata()
                         },
                         onDelete: {
                             showActionsMenu = false
@@ -124,10 +136,13 @@ struct FooterView: View {
 
 struct ActionsMenu: View {
     let targetAppName: String
+    let hasMetadata: Bool
     let onPasteToApp: () -> Void
     let onCopyToClipboard: () -> Void
     let onEdit: () -> Void
     let onPin: () -> Void
+    let onAddMetadata: () -> Void
+    let onDeleteMetadata: () -> Void
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
     
@@ -138,6 +153,14 @@ struct ActionsMenu: View {
             Divider().background(Color.gray.opacity(0.3))
             MenuButton(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit)
             MenuButton(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
+            
+            if hasMetadata {
+                 MenuButton(icon: "tag", text: "Edit Metadata", shortcut: "", action: onAddMetadata) // Re-use addMetadata for edit, just changes UI Context
+                 MenuButton(icon: "tag.slash", text: "Delete Metadata", shortcut: "", action: onDeleteMetadata)
+            } else {
+                 MenuButton(icon: "tag", text: "Add Metadata", shortcut: "", action: onAddMetadata)
+            }
+            
             MenuButton(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete)
             Divider().background(Color.gray.opacity(0.3))
             MenuButton(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll)
@@ -180,3 +203,4 @@ struct MenuButton: View {
         .onHover { isHovering = $0 }
     }
 }
+
