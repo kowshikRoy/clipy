@@ -1,12 +1,33 @@
 # Clipy
 
-Clipy is a macOS application built with Swift and SwiftUI.
+Clipy is a modern, privacy-focused clipboard manager for macOS, built with **Swift** and **SwiftUI**. It seamlessly integrates with your workflow, providing a beautiful and intelligent way to manage your clipboard history.
+
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 ## Features
 
-- **Clipboard History**: Keep track of your copied items.
-- **Snippets**: Manage and reuse common text snippets.
-- **macOS Native**: Built using standard macOS technologies for a seamless experience.
+### 🧠 Smart Clipboard History
+Clipy automatically recognizes and categorizes your copied content:
+- **Text**: Standard text snippets.
+- **Colors**: Detects hex codes (e.g., `#FF5733`) and shows a preview.
+- **Links**: Identifies URLs for quick access.
+- **Code**: Highlights code snippets.
+- **Email**: Recognizes email addresses.
+
+### 🛡️ Privacy Controls
+Your clipboard data is yours. Clipy provides robust privacy settings:
+- **Blocked Apps**: Prevent Clipy from recording content copied from specific applications (e.g., Password Managers).
+- **Blocked Websites**: Automatically ignore content copied from specific domains.
+
+### ⚡ Fast & Efficient
+- **Instant Search**: Quickly find anything in your history by text, type, or source application.
+- **Keyboard Navigation**: Navigate your history without lifting your fingers from the keyboard.
+- **Metadata**: View detailed information like source application, active URL, creation date, and size.
+
+### 🎨 Modern Design
+Features the **Lumina** design language with an **Obsidian** dark theme, offering a sleek, translucent interface that feels at home on macOS.
+
+---
 
 ## Installation
 
