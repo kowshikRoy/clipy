@@ -551,28 +551,40 @@ struct ContentView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.obsidianBorder, lineWidth: 0.5)
                 )
-                
-                // Settings Toggle removed as per request
             }
             .padding(16)
             .background(Color.obsidianSurface.opacity(0.5))
+            .zIndex(2) // Ensure search bar stays on top of pinned items if they were to scroll (though currently fixed)
             
+            // Pinned Section (Fixed)
+            if !pinnedItems.isEmpty {
+                VStack(spacing: 0) {
+                    sectionHeader(title: "Pinned", icon: "pin.fill")
+                    
+                    VStack(spacing: 0) {
+                        ForEach(pinnedItems) { item in
+                            LuminaRow(item: item, isSelected: selectedItemID == item.id)
+                                .id(item.id)
+                                .onTapGesture {
+                                    selectedItemID = item.id
+                                }
+                        }
+                    }
+                }
+                .background(Color.obsidianBackground.opacity(0.6)) // Match sidebar background
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color.obsidianBorder),
+                    alignment: .bottom
+                )
+                .zIndex(1)
+            }
+            
+            // Recent Section (Scrollable)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        // Pinned Section
-                        if !pinnedItems.isEmpty {
-                            Section(header: sectionHeader(title: "Pinned", icon: "pin.fill")) {
-                                ForEach(pinnedItems) { item in
-                                    LuminaRow(item: item, isSelected: selectedItemID == item.id)
-                                        .id(item.id)
-                                        .onTapGesture {
-                                            selectedItemID = item.id
-                                        }
-                                }
-                            }
-                        }
-                        
                         // Recent Section
                         if !recentItems.isEmpty {
                             Section(header: sectionHeader(title: "Recent", icon: "clock")) {
@@ -619,7 +631,10 @@ struct ContentView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.clear)
+        .background(
+            Color.obsidianBackground
+                .opacity(0.95)
+        )
     }
     
     private var pinnedItems: [ClipboardItem] {
@@ -638,8 +653,13 @@ struct ContentView: View {
         }
     }
     
+    // Combined history in visual order for navigation
+    private var visualHistory: [ClipboardItem] {
+        return pinnedItems + recentItems
+    }
+    
     private func moveSelection(offset: Int, proxy: ScrollViewProxy) {
-        let history = filteredHistory // Use filtered history for navigation
+        let history = visualHistory // Use VISUAL history for navigation
         guard !history.isEmpty else { return }
         
         let currentIndex = history.firstIndex { $0.id == selectedItemID } ?? -1
@@ -648,16 +668,23 @@ struct ContentView: View {
         // Clamp selection
         newIndex = max(0, min(newIndex, history.count - 1))
         
-        // Handling separate case for initial selection from "none" if needed, 
-        // but the clamping above handles typical -1 + 1 = 0 scenario for Down arrow.
-        // For Up arrow from -1 (-2), it clamps to 0. So first press selects top item.
-        
         let newItem = history[newIndex]
         if selectedItemID != newItem.id {
             selectedItemID = newItem.id
             isEditing = false // Exit editing mode when selection changes
-            withAnimation {
-                proxy.scrollTo(newItem.id, anchor: .center)
+            
+            // Only seek to scroll if the item is in the *Recent* list (Pinned items are always visible)
+            // But wait, if pinned list is long it might need scrolling too?
+            // For now assuming pinned list is short.
+            // However, we can just try to scroll to it; if it's in the ScrollView (Recents), it works.
+            // If it's in Pinned (outside ScrollView), ScrollViewProxy checks might fail or do nothing, which is fine.
+            // BUT: ScrollViewProxy only sees IDs inside the ScrollView. Pinned items are OUTSIDE.
+            // So we check if it is contained in 'recentItems' before scrolling.
+            
+            if recentItems.contains(where: { $0.id == newItem.id }) {
+                withAnimation {
+                    proxy.scrollTo(newItem.id, anchor: .center)
+                }
             }
         }
     }
