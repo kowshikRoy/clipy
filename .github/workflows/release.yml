@@ -42,10 +42,11 @@ jobs:
           name: Clipy.app
           path: build/Build/Products/Release/Clipy.app.zip
 
-      - name: Create Release
+      - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: build/Build/Products/Release/Clipy.app.zip
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'nightly' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Nightly Build' }}
           draft: false
           prerelease: false
