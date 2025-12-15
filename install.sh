@@ -41,7 +41,8 @@ fi
 
 # Extract download URL for the zip file
 # We look for "browser_download_url" and ensure it ends with .zip
-DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep "browser_download_url" | grep ".zip" | head -n 1 | cut -d '"' -f 4)
+# Use grep -o to handle both minified and pretty-printed JSON
+DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep -o '"browser_download_url": *"[^"]*"' | grep ".zip" | head -n 1 | cut -d '"' -f 4)
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo -e "${RED}Error: Could not find a .zip asset in the latest release.${NC}"
