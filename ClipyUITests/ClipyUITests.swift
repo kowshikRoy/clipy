@@ -79,9 +79,8 @@ final class ClipyUITests: XCTestCase {
         XCTAssertTrue(targetText.exists)
 
         // Search for something else to filter it out
-        // Select all and delete
-        searchField.click()
-        searchField.typeText(XCUIKeyboardKey.command.rawValue + "a")
+        // Clear text by double clicking and deleting
+        searchField.doubleClick()
         searchField.typeText(XCUIKeyboardKey.delete.rawValue)
 
         searchField.typeText("NonExistentString_" + UUID().uuidString)

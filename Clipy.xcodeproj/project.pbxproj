@@ -130,6 +130,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				AAA000000000000000000002 /* PBXTargetDependency */,
 			);
 			name = ClipyUITests;
 			productName = ClipyUITests;
@@ -137,6 +138,24 @@
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		AAA000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 159266312EC8072A00A0F75C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 159266382EC8072A00A0F75C;
+			remoteInfo = Clipy;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		AAA000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 159266382EC8072A00A0F75C /* Clipy */;
+			targetProxy = AAA000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		159266312EC8072A00A0F75C /* Project object */ = {
