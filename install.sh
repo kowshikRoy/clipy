@@ -89,3 +89,13 @@ xattr -cr "$INSTALL_DIR/$APP_NAME"
 
 echo -e "${GREEN}Success! Clipy has been installed to $INSTALL_DIR/$APP_NAME.${NC}"
 echo "You can now launch it from your Applications folder or via Spotlight."
+
+# 5. Show Checksum
+echo "Verifying installation..."
+EXECUTABLE_PATH="$INSTALL_DIR/$APP_NAME/Contents/MacOS/Clipy"
+if [ -f "$EXECUTABLE_PATH" ]; then
+    echo "SHA256 Checksum:"
+    shasum -a 256 "$EXECUTABLE_PATH"
+else
+    echo -e "${RED}Warning: Could not find executable at $EXECUTABLE_PATH to verify checksum.${NC}"
+fi
