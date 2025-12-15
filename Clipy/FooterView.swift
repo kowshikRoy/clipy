@@ -146,29 +146,110 @@ struct ActionsMenu: View {
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
     
+    @State private var selectedIndex: Int = 0
+    @FocusState private var isFocused: Bool
+
+    // Using a simpler struct without ID since we will iterate by index or make ID computed/stable if needed.
+    // However, iterating by index is safest for computed lists.
+    struct MenuItem {
+        let icon: String
+        let text: String
+        let shortcut: String
+        var color: Color = .primary
+        let action: () -> Void
+    }
+
+    var items: [MenuItem] {
+        var list = [
+            MenuItem(icon: "arrow.turn.up.left", text: "Paste to \(targetAppName)", shortcut: "↵", action: onPasteToApp),
+            MenuItem(icon: "doc.on.doc", text: "Copy to Clipboard", shortcut: "⌘↵", action: onCopyToClipboard),
+            MenuItem(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit),
+            MenuItem(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
+        ]
+
+        if hasMetadata {
+            list.append(MenuItem(icon: "tag", text: "Edit Metadata", shortcut: "", action: onAddMetadata))
+            list.append(MenuItem(icon: "tag.slash", text: "Delete Metadata", shortcut: "", action: onDeleteMetadata))
+        } else {
+            list.append(MenuItem(icon: "tag", text: "Add Metadata", shortcut: "", action: onAddMetadata))
+        }
+
+        list.append(MenuItem(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete))
+        list.append(MenuItem(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll))
+
+        return list
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            MenuButton(icon: "arrow.turn.up.left", text: "Paste to \(targetAppName)", shortcut: "↵", action: onPasteToApp)
-            MenuButton(icon: "doc.on.doc", text: "Copy to Clipboard", shortcut: "⌘↵", action: onCopyToClipboard)
-            Divider().background(Color.gray.opacity(0.3))
-            MenuButton(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit)
-            MenuButton(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
-            
-            if hasMetadata {
-                 MenuButton(icon: "tag", text: "Edit Metadata", shortcut: "", action: onAddMetadata) // Re-use addMetadata for edit, just changes UI Context
-                 MenuButton(icon: "tag.slash", text: "Delete Metadata", shortcut: "", action: onDeleteMetadata)
-            } else {
-                 MenuButton(icon: "tag", text: "Add Metadata", shortcut: "", action: onAddMetadata)
+            // Using indices to ensure stability. The list is small enough.
+            ForEach(items.indices, id: \.self) { index in
+                let item = items[index]
+                Group {
+                    if index == 2 {
+                        Divider().background(Color.gray.opacity(0.3))
+                    }
+                    if index == items.count - 1 {
+                        Divider().background(Color.gray.opacity(0.3))
+                    }
+
+                    MenuButton(
+                        icon: item.icon,
+                        text: item.text,
+                        shortcut: item.shortcut,
+                        color: item.color,
+                        isSelected: index == selectedIndex,
+                        action: item.action,
+                        onHover: { hovering in
+                            if hovering {
+                                selectedIndex = index
+                            }
+                        }
+                    )
+                }
             }
-            
-            MenuButton(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete)
-            Divider().background(Color.gray.opacity(0.3))
-            MenuButton(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll)
         }
         .padding(8)
-        .frame(width: 200)
+        .frame(width: 250)
         .background(Color(nsColor: NSColor.windowBackgroundColor))
+        .onAppear {
+            // Monitor for local events (Up/Down/Return) while the menu is open
+            // We use a local monitor so we don't interfere with other apps, but we catch events before they hit the view hierarchy if needed,
+            // or we can use a simpler approach: just listening on the window.
+            // Since this is a popover, it has its own window usually.
+            
+            // However, SwiftUI Popovers can be tricky. Let's try adding the monitor to the local event loop.
+            
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                switch event.keyCode {
+                case 126: // Up Arrow
+                    selectedIndex = max(0, selectedIndex - 1)
+                    return nil // Consume event
+                case 125: // Down Arrow
+                    selectedIndex = min(items.count - 1, selectedIndex + 1)
+                    return nil // Consume event
+                case 36: // Return
+                    if selectedIndex >= 0 && selectedIndex < items.count {
+                        items[selectedIndex].action()
+                    }
+                    return nil // Consume event
+                case 53: // Esc
+                     // Let it pass through to close the popover (default behavior)
+                    return event
+                default:
+                    return event
+                }
+            }
+        }
+        .onDisappear {
+            if let monitor = monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+        }
     }
+    
+    @State private var monitor: Any?
 }
 
 struct MenuButton: View {
@@ -176,9 +257,9 @@ struct MenuButton: View {
     let text: String
     let shortcut: String
     var color: Color = .primary
+    let isSelected: Bool
     let action: () -> Void
-    
-    @State private var isHovering = false
+    let onHover: (Bool) -> Void
     
     var body: some View {
         Button(action: action) {
@@ -189,18 +270,19 @@ struct MenuButton: View {
                 Spacer()
                 if !shortcut.isEmpty {
                     Text(shortcut)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 }
             }
             .foregroundColor(color)
             .padding(.vertical, 4)
             .padding(.horizontal, 8)
-            .background(isHovering ? Color.accentColor.opacity(0.2) : Color.clear)
+            .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
             .cornerRadius(4)
         }
         .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
+        .onHover { hovering in
+            onHover(hovering)
+        }
     }
 }
-
