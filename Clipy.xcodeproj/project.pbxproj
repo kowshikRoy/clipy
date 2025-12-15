@@ -168,6 +168,10 @@
 					159266382EC8072A00A0F75C = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					17CF3B21B3A3C49B39A61F50 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 159266382EC8072A00A0F75C;
+					};
 				};
 			};
 			buildConfigurationList = 159266342EC8072A00A0F75C /* Build configuration list for PBXProject "Clipy" */;
