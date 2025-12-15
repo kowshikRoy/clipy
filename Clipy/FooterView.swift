@@ -210,26 +210,46 @@ struct ActionsMenu: View {
             }
         }
         .padding(8)
-        .frame(width: 200)
+        .frame(width: 250)
         .background(Color(nsColor: NSColor.windowBackgroundColor))
-        .focusable()
-        .focused($isFocused)
         .onAppear {
-            isFocused = true
+            // Monitor for local events (Up/Down/Return) while the menu is open
+            // We use a local monitor so we don't interfere with other apps, but we catch events before they hit the view hierarchy if needed,
+            // or we can use a simpler approach: just listening on the window.
+            // Since this is a popover, it has its own window usually.
+            
+            // However, SwiftUI Popovers can be tricky. Let's try adding the monitor to the local event loop.
+            
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                switch event.keyCode {
+                case 126: // Up Arrow
+                    selectedIndex = max(0, selectedIndex - 1)
+                    return nil // Consume event
+                case 125: // Down Arrow
+                    selectedIndex = min(items.count - 1, selectedIndex + 1)
+                    return nil // Consume event
+                case 36: // Return
+                    if selectedIndex >= 0 && selectedIndex < items.count {
+                        items[selectedIndex].action()
+                    }
+                    return nil // Consume event
+                case 53: // Esc
+                     // Let it pass through to close the popover (default behavior)
+                    return event
+                default:
+                    return event
+                }
+            }
         }
-        .onKeyPress(.upArrow) {
-            selectedIndex = max(0, selectedIndex - 1)
-            return .handled
-        }
-        .onKeyPress(.downArrow) {
-            selectedIndex = min(items.count - 1, selectedIndex + 1)
-            return .handled
-        }
-        .onKeyPress(.return) {
-            items[selectedIndex].action()
-            return .handled
+        .onDisappear {
+            if let monitor = monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
         }
     }
+    
+    @State private var monitor: Any?
 }
 
 struct MenuButton: View {
@@ -250,8 +270,8 @@ struct MenuButton: View {
                 Spacer()
                 if !shortcut.isEmpty {
                     Text(shortcut)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 }
             }
             .foregroundColor(color)
