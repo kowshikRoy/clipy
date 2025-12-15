@@ -27,7 +27,13 @@ echo "Fetching latest release information..."
 RELEASE_JSON=$(curl -s https://api.github.com/repos/$REPO/releases/latest)
 
 # Check if we got a valid response
-if echo "$RELEASE_JSON" | grep -q "Not Found"; then
+if echo "$RELEASE_JSON" | grep -q "Not Found" || [ -z "$RELEASE_JSON" ]; then
+    echo "Release 'latest' not found. Trying 'nightly' tag..."
+    RELEASE_JSON=$(curl -s https://api.github.com/repos/$REPO/releases/tags/nightly)
+fi
+
+# Check if we still have no valid release
+if echo "$RELEASE_JSON" | grep -q "Not Found" || [ -z "$RELEASE_JSON" ]; then
     echo -e "${RED}Error: No release found for $REPO.${NC}"
     echo "Please check https://github.com/$REPO/releases for manual installation."
     exit 1
@@ -35,7 +41,8 @@ fi
 
 # Extract download URL for the zip file
 # We look for "browser_download_url" and ensure it ends with .zip
-DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep "browser_download_url" | grep ".zip" | head -n 1 | cut -d '"' -f 4)
+# Use grep -o to handle both minified and pretty-printed JSON
+DOWNLOAD_URL=$(echo "$RELEASE_JSON" | grep -o '"browser_download_url": *"[^"]*"' | grep ".zip" | head -n 1 | cut -d '"' -f 4)
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo -e "${RED}Error: Could not find a .zip asset in the latest release.${NC}"
