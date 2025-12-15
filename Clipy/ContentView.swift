@@ -445,7 +445,7 @@ struct ContentView: View {
                         }
 
                     VStack(spacing: 16) {
-                        Text("Add Metadata")
+                        Text(metadataInput.isEmpty ? "Add Metadata" : "Edit Metadata")
                             .font(.custom("Roboto", size: 16))
                             .fontWeight(.bold)
                             .foregroundColor(.luminaTextPrimary)
@@ -506,7 +506,9 @@ struct ContentView: View {
             onPin: pinEntry,
             onAddMetadata: addMetadata,
             onDelete: deleteEntry,
-            onDeleteAll: deleteAllEntries
+            onDeleteAll: deleteAllEntries,
+            onDeleteMetadata: deleteMetadata,
+            hasMetadata: selectedItem?.customMetadata != nil
         )
     }
     .background(VisualEffectView().ignoresSafeArea())
@@ -812,6 +814,11 @@ Alternatively, you can use Cmd+V manually after copying.
         guard let selectedItemID else { return }
         clipboardManager.updateItemMetadata(id: selectedItemID, metadata: metadataInput.isEmpty ? nil : metadataInput)
         isAddingMetadata = false
+    }
+
+    private func deleteMetadata() {
+        guard let selectedItemID else { return }
+        clipboardManager.updateItemMetadata(id: selectedItemID, metadata: nil)
     }
     
     private func deleteEntry() {
