@@ -1,0 +1,27 @@
+name: Clipy CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Select Xcode
+      run: sudo xcode-select -switch /Applications/Xcode.app
+
+    - name: Build and Test
+      run: |
+        xcodebuild test \
+          -project Clipy.xcodeproj \
+          -scheme Clipy \
+          -destination 'platform=macOS' \
+          -resultBundlePath TestResults

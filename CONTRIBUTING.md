@@ -36,6 +36,14 @@ Have an idea? Open a GitHub issue to discuss it!
 - Ensure you have the latest version of Xcode installed.
 - Format your code to match the existing style.
 
+### Running Tests
+
+We have automated E2E tests to verify the core features. Please make sure to run them before submitting a PR.
+
+1. Open `Clipy.xcodeproj` in Xcode.
+2. Select the `Clipy` scheme.
+3. Press `Cmd+U` or go to `Product > Test`.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.

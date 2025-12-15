@@ -35,6 +35,14 @@ You can download the latest version from the [Releases](https://github.com/kowsh
 2. Open `Clipy.xcodeproj` in Xcode.
 3. Build and Run (Cmd+R).
 
+## Testing
+
+To run the automated E2E tests:
+
+1. Open `Clipy.xcodeproj` in Xcode.
+2. Select the `Clipy` scheme.
+3. Press `Cmd+U` to run the tests.
+
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
