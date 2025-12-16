@@ -143,6 +143,29 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     }
 
     func matches(_ query: String) -> Bool {
+        // MARK: - Regex Support
+        if query.hasPrefix("/") && query.count > 1 {
+            let pattern = String(query.dropFirst())
+            // Use local text representation for regex to support case-sensitive matching if needed,
+            // or just use it because searchableText is lowercased.
+            // Note: Creating regex every time might be slow, but this runs in background now.
+            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) {
+                let range = NSRange(location: 0, length: textRepresentation.utf16.count)
+                // Limit range to prevent massive stalls on 1MB+ files if the user writes a bad regex
+                // But generally acceptable on background thread.
+                let searchRange = NSIntersectionRange(range, NSRange(location: 0, length: min(100_000, range.length)))
+
+                if regex.firstMatch(in: textRepresentation, options: [], range: searchRange) != nil {
+                    return true
+                }
+            }
+            // Fallback to standard search if regex fails to compile?
+            // Or strict: if it looks like regex, it must be regex.
+            // Let's go with strict. If it starts with /, we try regex.
+            return false
+        }
+
+        // MARK: - Standard Token Search
         let terms = query.lowercased().split(separator: " ")
         guard !terms.isEmpty else { return true }
         
