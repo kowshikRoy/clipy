@@ -3,6 +3,7 @@ import SwiftUI
 import Combine
 import Carbon
 import AppKit
+import UniformTypeIdentifiers
 
 // MARK: - App Settings Model
 
@@ -612,7 +613,7 @@ struct PrivacySettingsView: View {
     
     private func browseForApp() {
         let panel = NSOpenPanel()
-        panel.allowedFileTypes = ["app"]
+        panel.allowedContentTypes = [.application]
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
