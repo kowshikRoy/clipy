@@ -571,7 +571,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                .background(Color.obsidianBackground.opacity(0.6)) // Match sidebar background
+                // Background removed for consistency
                 .overlay(
                     Rectangle()
                         .frame(height: 1)
@@ -584,11 +584,10 @@ struct ContentView: View {
             // Recent Section (Scrollable)
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        // Recent Section
-                        if !recentItems.isEmpty {
-                            Section(header: sectionHeader(title: "Recent", icon: "clock")) {
-                                ForEach(recentItems) { item in
+                    LazyVStack(spacing: 0) {
+                        ForEach(categorizedHistory, id: \.0) { category, items in
+                            Section(header: sectionHeader(title: category.title, icon: category.icon)) {
+                                ForEach(items) { item in
                                     LuminaRow(item: item, isSelected: selectedItemID == item.id)
                                         .id(item.id)
                                         .onTapGesture {
@@ -645,6 +644,65 @@ struct ContentView: View {
         filteredHistory.filter { !$0.isPinned }
     }
     
+    private var categorizedHistory: [(DateCategory, [ClipboardItem])] {
+        let unpinned = recentItems
+        let calendar = Calendar.current
+        let now = Date()
+        
+        var today: [ClipboardItem] = []
+        var yesterday: [ClipboardItem] = []
+        var thisWeek: [ClipboardItem] = []
+        var thisMonth: [ClipboardItem] = []
+        var rest: [ClipboardItem] = []
+        
+        for item in unpinned {
+            if calendar.isDateInToday(item.createdAt) {
+                today.append(item)
+            } else if calendar.isDateInYesterday(item.createdAt) {
+                yesterday.append(item)
+            } else if calendar.isDate(item.createdAt, equalTo: now, toGranularity: .weekOfYear) {
+                thisWeek.append(item)
+            } else if calendar.isDate(item.createdAt, equalTo: now, toGranularity: .month) {
+                thisMonth.append(item)
+            } else {
+                rest.append(item)
+            }
+        }
+        
+        var result: [(DateCategory, [ClipboardItem])] = []
+        if !today.isEmpty { result.append((.today, today)) }
+        if !yesterday.isEmpty { result.append((.yesterday, yesterday)) }
+        if !thisWeek.isEmpty { result.append((.thisWeek, thisWeek)) }
+        if !thisMonth.isEmpty { result.append((.thisMonth, thisMonth)) }
+        if !rest.isEmpty { result.append((.rest, rest)) }
+        
+        return result
+    }
+    
+    enum DateCategory {
+        case today, yesterday, thisWeek, thisMonth, rest
+        
+        var title: String {
+            switch self {
+            case .today: return "Today"
+            case .yesterday: return "Yesterday"
+            case .thisWeek: return "This Week"
+            case .thisMonth: return "This Month"
+            case .rest: return "Rest"
+            }
+        }
+        
+        var icon: String {
+            switch self {
+            case .today: return "sun.max"
+            case .yesterday: return "clock.arrow.circlepath"
+            case .thisWeek: return "calendar"
+            case .thisMonth: return "calendar.circle"
+            case .rest: return "archivebox"
+            }
+        }
+    }
+    
     private var filteredHistory: [ClipboardItem] {
         if searchText.isEmpty {
             return clipboardManager.history
@@ -655,6 +713,8 @@ struct ContentView: View {
     
     // Combined history in visual order for navigation
     private var visualHistory: [ClipboardItem] {
+        // Since categorizedHistory preserves the order of recentItems (unpinned), 
+        // we can just stick with the original filtered logic for navigation order
         return pinnedItems + recentItems
     }
     
@@ -663,6 +723,11 @@ struct ContentView: View {
         guard !history.isEmpty else { return }
         
         let currentIndex = history.firstIndex { $0.id == selectedItemID } ?? -1
+        
+        // Prevent jitter at bounds
+        if currentIndex == 0 && offset < 0 { return }
+        if currentIndex == history.count - 1 && offset > 0 { return }
+        
         var newIndex = currentIndex + offset
         
         // Clamp selection
@@ -673,17 +738,10 @@ struct ContentView: View {
             selectedItemID = newItem.id
             isEditing = false // Exit editing mode when selection changes
             
-            // Only seek to scroll if the item is in the *Recent* list (Pinned items are always visible)
-            // But wait, if pinned list is long it might need scrolling too?
-            // For now assuming pinned list is short.
-            // However, we can just try to scroll to it; if it's in the ScrollView (Recents), it works.
-            // If it's in Pinned (outside ScrollView), ScrollViewProxy checks might fail or do nothing, which is fine.
-            // BUT: ScrollViewProxy only sees IDs inside the ScrollView. Pinned items are OUTSIDE.
-            // So we check if it is contained in 'recentItems' before scrolling.
-            
-            if recentItems.contains(where: { $0.id == newItem.id }) {
+            // Allow scrolling for any item that is not pinned (i.e. is in the scroll view)
+            if !pinnedItems.contains(where: { $0.id == newItem.id }) {
                 withAnimation {
-                    proxy.scrollTo(newItem.id, anchor: .center)
+                    proxy.scrollTo(newItem.id, anchor: nil)
                 }
             }
         }
