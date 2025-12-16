@@ -233,6 +233,11 @@ struct ActionsMenu: View {
                         items[selectedIndex].action()
                     }
                     return nil // Consume event
+                case 51: // Delete / Backspace
+                    if let deleteItem = items.first(where: { $0.text == "Delete entry" }) {
+                        deleteItem.action()
+                    }
+                    return nil // Consume event
                 case 53: // Esc
                      // Let it pass through to close the popover (default behavior)
                     return event
