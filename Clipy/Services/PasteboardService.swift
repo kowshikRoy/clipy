@@ -58,6 +58,7 @@ class PasteboardService: ObservableObject {
         }
     }
     
+    @MainActor
     private func handleImage(_ image: NSImage) {
         // Convert to PNG data
         guard let tiffData = image.tiffRepresentation,
@@ -98,6 +99,7 @@ class PasteboardService: ObservableObject {
         }
     }
     
+    @MainActor
     private func handleText(_ text: String) {
         let trimmedString = text.trimmingCharacters(in: .whitespacesAndNewlines)
         
