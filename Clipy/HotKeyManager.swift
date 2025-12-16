@@ -48,7 +48,7 @@ class HotKeyManager {
         // Unregister existing if any
         unregisterHotKey()
         
-        var hotKeyID = EventHotKeyID(signature: OSType(0x434C5059), id: 1) // CLPY
+        let hotKeyID = EventHotKeyID(signature: OSType(0x434C5059), id: 1) // CLPY
         
         var status = noErr
         status = RegisterEventHotKey(
