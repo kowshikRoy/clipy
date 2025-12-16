@@ -38,6 +38,7 @@ class ClipboardViewModel: ObservableObject {
             $history,
             $searchText.debounce(for: .milliseconds(100), scheduler: DispatchQueue.main) // Debounce search only
         )
+            .receive(on: DispatchQueue.global(qos: .userInitiated)) // Move filtering to background
             .map { (history, text) -> [ClipboardItem] in
                 if text.isEmpty {
                     return history
@@ -45,6 +46,7 @@ class ClipboardViewModel: ObservableObject {
                     return history.filter { $0.matches(text) }
                 }
             }
+            .receive(on: DispatchQueue.main) // Receive results on main thread
             .assign(to: &$filteredHistory)
 
         // Initial Load

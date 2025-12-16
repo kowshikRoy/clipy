@@ -116,10 +116,10 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     static func computeSearchableText(data: ClipboardData, sourceApp: String?, smartType: SmartContentType, customMetadata: String?) -> String {
         var parts: [String] = []
 
-        // 1. Content
+        // 1. Content (Limited to first 50,000 chars to save memory for massive strings)
         switch data {
         case .text(let string, _):
-            parts.append(string.lowercased())
+            parts.append(String(string.prefix(50_000)).lowercased())
         case .color(let hex):
             parts.append(hex.lowercased())
         case .image:
