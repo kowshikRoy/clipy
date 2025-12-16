@@ -16,6 +16,7 @@ struct ContentView: View {
     // Metadata State for Dialog
     @State private var isAddingMetadata = false
     @State private var metadataInput = ""
+    @FocusState private var isMetadataFocused: Bool
 
     init(settings: AppSettings, focusManager: AppFocusManager) {
         self.appSettings = settings
@@ -194,6 +195,12 @@ struct ContentView: View {
                     )
                     .foregroundColor(.luminaTextPrimary)
                     .frame(width: 250)
+                    .focused($isMetadataFocused)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            isMetadataFocused = true
+                        }
+                    }
                     .onSubmit {
                         saveMetadata()
                     }
