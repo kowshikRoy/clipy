@@ -3,6 +3,7 @@ import SwiftUI
 import Combine
 import Carbon
 import AppKit
+import UniformTypeIdentifiers
 
 // MARK: - App Settings Model
 

@@ -111,7 +111,7 @@ struct ContentView: View {
         clipboardViewModel.copyToPasteboard(item: item)
         // 2. Switch Focus Explicitly
         if let previousApp = focusManager.previousApp {
-            previousApp.activate()
+            previousApp.activate(options: [])
         } else {
             NSApplication.shared.hide(nil)
         }
