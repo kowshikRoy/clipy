@@ -612,7 +612,7 @@ struct PrivacySettingsView: View {
     
     private func browseForApp() {
         let panel = NSOpenPanel()
-        panel.allowedFileTypes = ["app"]
+        panel.allowedContentTypes = [.application]
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.canChooseFiles = true

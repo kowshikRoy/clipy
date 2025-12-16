@@ -87,8 +87,8 @@ struct ContentView: View {
             clipboardViewModel.startMonitoring()
             clipboardViewModel.ensureSelection()
         }
-        .onChange(of: clipboardViewModel.history) { _ in clipboardViewModel.ensureSelection() }
-        .onChange(of: clipboardViewModel.searchText) { _ in clipboardViewModel.ensureSelection() }
+        .onChange(of: clipboardViewModel.history) { _, _ in clipboardViewModel.ensureSelection() }
+        .onChange(of: clipboardViewModel.searchText) { _, _ in clipboardViewModel.ensureSelection() }
     }
 
     private var emptyState: some View {
@@ -111,7 +111,7 @@ struct ContentView: View {
         clipboardViewModel.copyToPasteboard(item: item)
         // 2. Switch Focus Explicitly
         if let previousApp = focusManager.previousApp {
-            previousApp.activate(options: .activateIgnoringOtherApps)
+            previousApp.activate()
         } else {
             NSApplication.shared.hide(nil)
         }
