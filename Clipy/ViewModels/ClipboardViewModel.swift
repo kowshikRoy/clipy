@@ -17,18 +17,10 @@ class ClipboardViewModel: ObservableObject {
     }
     
     @Published var searchText: String = ""
+    @Published var filteredHistory: [ClipboardItem] = [] // Now Published
     @Published var selectedItemID: ClipboardItem.ID?
     @Published var isEditing: Bool = false
     @Published var editingText: String = ""
-    
-    // Derived properties
-    var filteredHistory: [ClipboardItem] {
-        if searchText.isEmpty {
-            return history
-        } else {
-            return history.filter { $0.matches(searchText) }
-        }
-    }
     
     var selectedItem: ClipboardItem? {
         history.first { $0.id == selectedItemID }
@@ -41,6 +33,20 @@ class ClipboardViewModel: ObservableObject {
     init(settings: AppSettings) {
         self.pasteboardService = PasteboardService(settings: settings)
         
+        // Setup Search Pipeline
+        Publishers.CombineLatest(
+            $history,
+            $searchText.debounce(for: .milliseconds(100), scheduler: DispatchQueue.main) // Debounce search only
+        )
+            .map { (history, text) -> [ClipboardItem] in
+                if text.isEmpty {
+                    return history
+                } else {
+                    return history.filter { $0.matches(text) }
+                }
+            }
+            .assign(to: &$filteredHistory)
+
         // Initial Load
         Task {
             let items = await historyRepository.load()
@@ -88,6 +94,7 @@ class ClipboardViewModel: ObservableObject {
     func togglePin(for itemID: UUID) {
         guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
         history[index].isPinned.toggle()
+        // Force update filtered history if needed, but since history changes, pipeline should trigger
     }
     
     func deleteItem(id: UUID) {

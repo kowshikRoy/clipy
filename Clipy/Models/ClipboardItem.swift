@@ -25,6 +25,10 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     var copyCount: Int = 1
     var customMetadata: String? = nil
 
+    // Optimized stored properties
+    let smartType: SmartContentType
+    let searchableText: String
+
     var textRepresentation: String {
         switch data {
         case .text(let string, _):
@@ -36,7 +40,55 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         }
     }
     
-    var smartType: SmartContentType {
+    // Custom initializer to compute derived properties
+    init(id: UUID, data: ClipboardData, createdAt: Date, sourceApp: String?, isPinned: Bool = false, copyCount: Int = 1, customMetadata: String? = nil) {
+        self.id = id
+        self.data = data
+        self.createdAt = createdAt
+        self.sourceApp = sourceApp
+        self.isPinned = isPinned
+        self.copyCount = copyCount
+        self.customMetadata = customMetadata
+
+        // Compute smartType and searchableText once
+        let type = ClipboardItem.computeSmartType(for: data)
+        self.smartType = type
+        self.searchableText = ClipboardItem.computeSearchableText(data: data, sourceApp: sourceApp, smartType: type, customMetadata: customMetadata)
+    }
+
+    // Coding Keys
+    enum CodingKeys: String, CodingKey {
+        case id, data, createdAt, sourceApp, isPinned, copyCount, customMetadata
+        case smartType, searchableText
+    }
+
+    // Custom decoding for migration
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        data = try container.decode(ClipboardData.self, forKey: .data)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        sourceApp = try container.decodeIfPresent(String.self, forKey: .sourceApp)
+        isPinned = try container.decode(Bool.self, forKey: .isPinned)
+        copyCount = try container.decode(Int.self, forKey: .copyCount)
+        customMetadata = try container.decodeIfPresent(String.self, forKey: .customMetadata)
+
+        // Handle migration: if smartType or searchableText are missing, compute them
+        if let type = try? container.decodeIfPresent(SmartContentType.self, forKey: .smartType) {
+            smartType = type
+        } else {
+            smartType = ClipboardItem.computeSmartType(for: data)
+        }
+
+        if let st = try? container.decodeIfPresent(String.self, forKey: .searchableText) {
+            searchableText = st
+        } else {
+            searchableText = ClipboardItem.computeSearchableText(data: data, sourceApp: sourceApp, smartType: smartType, customMetadata: customMetadata)
+        }
+    }
+
+    // Helper to compute smart type
+    static func computeSmartType(for data: ClipboardData) -> SmartContentType {
         switch data {
         case .color:
             return .color
@@ -60,28 +112,47 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         }
     }
     
+    // Helper to compute searchable text
+    static func computeSearchableText(data: ClipboardData, sourceApp: String?, smartType: SmartContentType, customMetadata: String?) -> String {
+        var parts: [String] = []
+
+        // 1. Content
+        switch data {
+        case .text(let string, _):
+            parts.append(string.lowercased())
+        case .color(let hex):
+            parts.append(hex.lowercased())
+        case .image:
+            parts.append("image")
+        }
+
+        // 2. Source App
+        if let app = sourceApp {
+            parts.append(app.lowercased())
+        }
+
+        // 3. Smart Type Title
+        parts.append(smartType.title.lowercased())
+
+        // 4. Custom Metadata
+        if let meta = customMetadata {
+            parts.append(meta.lowercased())
+        }
+
+        return parts.joined(separator: " ")
+    }
+
     func matches(_ query: String) -> Bool {
         let terms = query.lowercased().split(separator: " ")
         guard !terms.isEmpty else { return true }
         
         return terms.allSatisfy { term in
-            let termString = String(term)
-            
-            // 1. Content Match
-            if textRepresentation.lowercased().contains(termString) { return true }
-            
-            // 2. Metadata Match (Source Aapp)
-            if let app = sourceApp?.lowercased(), app.contains(termString) { return true }
-            
-            // 3. Type Match
-            if smartType.title.lowercased().contains(termString) { return true }
-            
-            return false
+            searchableText.contains(term)
         }
     }
 }
 
-enum SmartContentType {
+enum SmartContentType: String, Codable {
     case text
     case url
     case email
