@@ -18,11 +18,22 @@ struct DetailStageView: View {
         VStack(alignment: .leading, spacing: 20) {
             // Adaptive Header
             HStack {
-                Image(systemName: item.smartType.icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(item.smartType.color)
+                let (icon, color, title): (String, Color, String) = {
+                    switch item.data {
+                    case .text:
+                        return ("doc.text", .luminaTextPrimary, "Text")
+                    case .color:
+                        return ("paintpalette", .purple.opacity(0.8), "Color")
+                    case .image:
+                        return ("photo", .pink.opacity(0.8), "Image")
+                    }
+                }()
                 
-                Text(item.smartType.title)
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+                
+                Text(title)
                     .font(.custom("Roboto", size: 24))
                     .fontWeight(.light)
                     .foregroundColor(.luminaTextPrimary)
@@ -88,7 +99,7 @@ struct DetailStageView: View {
                 } else {
                     ScrollView {
                         Text(item.textRepresentation)
-                            .font(item.smartType == .code ? .system(size: 13, design: .monospaced) : .custom("Roboto", size: 14))
+                            .font(.custom("Roboto", size: 14))
                             .foregroundColor(.luminaTextPrimary)
                             .lineSpacing(6)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -147,7 +158,15 @@ struct DetailStageView: View {
                     }
                     
                     MetadataRow(icon: "calendar", label: "Date", value: item.createdAt.formatted(date: .numeric, time: .shortened))
-                    MetadataRow(icon: "folder", label: "Type", value: item.smartType.title)
+                    
+                    let typeTitle: String = {
+                        switch item.data {
+                        case .text: return "Text"
+                        case .color: return "Color"
+                        case .image: return "Image"
+                        }
+                    }()
+                    MetadataRow(icon: "folder", label: "Type", value: typeTitle)
                 }
                 .padding(.vertical, 8)
 

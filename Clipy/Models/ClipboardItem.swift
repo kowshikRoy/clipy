@@ -24,7 +24,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     var isPinned: Bool = false
     var copyCount: Int = 1
     var customMetadata: String? = nil
-
+    
     var textRepresentation: String {
         switch data {
         case .text(let string, _):
@@ -36,28 +36,48 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         }
     }
     
-    var smartType: SmartContentType {
-        switch data {
-        case .color:
-            return .color
-        case .image:
-            return .image
-        case .text(let text, _):
-            if let url = URL(string: text), url.scheme != nil, url.host != nil {
-                return .url
-            }
-            // Simple email regex
-            let emailPattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-            if text.range(of: emailPattern, options: .regularExpression) != nil {
-                return .email
-            }
-            // Simple code detection (look for common programming keywords or symbols)
-            let codeIndicators = ["func ", "var ", "let ", "class ", "struct ", "import ", "{", "}", ";", "def ", "return "]
-            if codeIndicators.filter({ text.contains($0) }).count >= 2 {
-                return .code
-            }
-            return .text
-        }
+    // MARK: - Lifecycle & Codable
+    
+    enum CodingKeys: String, CodingKey {
+        case id, data, createdAt, sourceApp, isPinned, copyCount, customMetadata
+    }
+    
+    init(id: UUID = UUID(), 
+         data: ClipboardData, 
+         createdAt: Date = Date(), 
+         sourceApp: String?, 
+         isPinned: Bool = false, 
+         copyCount: Int = 1, 
+         customMetadata: String? = nil) {
+        self.id = id
+        self.data = data
+        self.createdAt = createdAt
+        self.sourceApp = sourceApp
+        self.isPinned = isPinned
+        self.copyCount = copyCount
+        self.customMetadata = customMetadata
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.data = try container.decode(ClipboardData.self, forKey: .data)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.sourceApp = try container.decodeIfPresent(String.self, forKey: .sourceApp)
+        self.isPinned = try container.decode(Bool.self, forKey: .isPinned)
+        self.copyCount = try container.decode(Int.self, forKey: .copyCount)
+        self.customMetadata = try container.decodeIfPresent(String.self, forKey: .customMetadata)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(data, forKey: .data)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(sourceApp, forKey: .sourceApp)
+        try container.encode(isPinned, forKey: .isPinned)
+        try container.encode(copyCount, forKey: .copyCount)
+        try container.encode(customMetadata, forKey: .customMetadata)
     }
     
     func matches(_ query: String) -> Bool {
@@ -73,52 +93,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
             // 2. Metadata Match (Source Aapp)
             if let app = sourceApp?.lowercased(), app.contains(termString) { return true }
             
-            // 3. Type Match
-            if smartType.title.lowercased().contains(termString) { return true }
-            
             return false
-        }
-    }
-}
-
-enum SmartContentType {
-    case text
-    case url
-    case email
-    case code
-    case color
-    case image
-
-    var title: String {
-        switch self {
-        case .text: return "Text"
-        case .url: return "URL"
-        case .email: return "Email"
-        case .code: return "Code"
-        case .color: return "Color"
-        case .image: return "Image"
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .text: return "doc.text"
-        case .url: return "link"
-        case .email: return "envelope"
-        case .code: return "chevron.left.forwardslash.chevron.right"
-        case .color: return "paintpalette"
-        case .image: return "photo"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .text: return .luminaTextPrimary
-        case .url: return .blue.opacity(0.8)
-        case .email: return .orange.opacity(0.8)
-        case .code: return .green.opacity(0.8)
-        case .color: return .purple.opacity(0.8)
-        case .image: return .pink.opacity(0.8)
         }
     }
 }

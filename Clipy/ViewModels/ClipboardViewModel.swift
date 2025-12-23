@@ -13,22 +13,20 @@ class ClipboardViewModel: ObservableObject {
     @Published var history: [ClipboardItem] = [] {
         didSet {
             saveHistory()
+            // Trigger filtering when history changes
+            applyFilter() 
         }
     }
     
     @Published var searchText: String = ""
+    @Published var filteredHistory: [ClipboardItem] = [] {
+        didSet {
+            recalculateDerivedData()
+        }
+    }
     @Published var selectedItemID: ClipboardItem.ID?
     @Published var isEditing: Bool = false
     @Published var editingText: String = ""
-    
-    // Derived properties
-    var filteredHistory: [ClipboardItem] {
-        if searchText.isEmpty {
-            return history
-        } else {
-            return history.filter { $0.matches(searchText) }
-        }
-    }
     
     var selectedItem: ClipboardItem? {
         history.first { $0.id == selectedItemID }
@@ -55,6 +53,35 @@ class ClipboardViewModel: ObservableObject {
                 self?.addOrUpdateItem(newItem)
             }
             .store(in: &cancellables)
+            
+        // Setup Search Subscription
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.applyFilter()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func applyFilter() {
+        let currentHistory = history
+        let query = searchText
+        
+        if query.isEmpty {
+            self.filteredHistory = currentHistory
+            self.ensureSelection()
+            return
+        }
+        
+        Task.detached(priority: .userInitiated) {
+            let filtered = currentHistory.filter { $0.matches(query) }
+            
+            await MainActor.run {
+                self.filteredHistory = filtered
+                self.ensureSelection()
+            }
+        }
     }
     
     func startMonitoring() {
@@ -140,16 +167,23 @@ class ClipboardViewModel: ObservableObject {
     
     // MARK: - Presentation Logic
     
-    var pinnedItems: [ClipboardItem] {
-        filteredHistory.filter { $0.isPinned }
-    }
+    @Published var pinnedItems: [ClipboardItem] = []
+    @Published var categorizedHistory: [(DateCategory, [ClipboardItem])] = []
     
-    var recentItems: [ClipboardItem] {
-        filteredHistory.filter { !$0.isPinned }
-    }
+    // Combined history in visual order for navigation
+    // Note: We don't necessarily need this to be Published if it's just for internal logic, but for safety lets keep it. 
+    // Actually moveSelection uses it, so it can be a simple property that is updated.
+    var visualHistory: [ClipboardItem] = []
     
-    var categorizedHistory: [(DateCategory, [ClipboardItem])] {
-        let unpinned = recentItems
+    private func recalculateDerivedData() {
+        let currentFiltered = filteredHistory
+        
+        let pItems = currentFiltered.filter { $0.isPinned }
+        let recentItems = currentFiltered.filter { !$0.isPinned }
+        
+        self.pinnedItems = pItems
+        self.visualHistory = pItems + recentItems
+        
         let calendar = Calendar.current
         let now = Date()
         
@@ -159,7 +193,7 @@ class ClipboardViewModel: ObservableObject {
         var thisMonth: [ClipboardItem] = []
         var rest: [ClipboardItem] = []
         
-        for item in unpinned {
+        for item in recentItems {
             if calendar.isDateInToday(item.createdAt) {
                 today.append(item)
             } else if calendar.isDateInYesterday(item.createdAt) {
@@ -180,7 +214,7 @@ class ClipboardViewModel: ObservableObject {
         if !thisMonth.isEmpty { result.append((.thisMonth, thisMonth)) }
         if !rest.isEmpty { result.append((.rest, rest)) }
         
-        return result
+        self.categorizedHistory = result
     }
     
     enum DateCategory: String {
@@ -201,11 +235,6 @@ class ClipboardViewModel: ObservableObject {
             case .rest: return "archivebox"
             }
         }
-    }
-    
-    // Combined history in visual order for navigation
-    var visualHistory: [ClipboardItem] {
-        return pinnedItems + recentItems
     }
     
     func moveSelection(offset: Int, proxy: ScrollViewProxy? = nil) {

@@ -7,37 +7,24 @@
 
 import SwiftUI
 
-struct LuminaRow: View {
+struct LuminaRow: View, Equatable {
     let item: ClipboardItem
     let isSelected: Bool
     @State private var isHovering = false
+    
+    static func == (lhs: LuminaRow, rhs: LuminaRow) -> Bool {
+        return lhs.item.id == rhs.item.id &&
+               lhs.isSelected == rhs.isSelected
+    }
     
     var body: some View {
         HStack(spacing: 12) {
             // Show thumbnail for images
             if case .image(let filename) = item.data {
-                if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-                    let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
-                    if let nsImage = NSImage(contentsOf: fileURL) {
-                        Image(nsImage: nsImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 32, height: 32)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                    } else {
-                        Image(systemName: item.smartType.icon)
-                            .font(.system(size: 14))
-                            .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
-                            .frame(width: 20, height: 20)
-                    }
-                } else {
-                    Image(systemName: item.smartType.icon)
-                        .font(.system(size: 14))
-                        .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
-                        .frame(width: 20, height: 20)
-                }
+                AsyncThumbnailView(filename: filename)
+                    .frame(width: 32, height: 32)
             } else {
-                Image(systemName: item.smartType.icon)
+                Image(systemName: iconName(for: item.data))
                     .font(.system(size: 14))
                     .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
                     .frame(width: 20, height: 20)
@@ -69,10 +56,63 @@ struct LuminaRow: View {
         }
         .contentShape(Rectangle()) // Ensure entire row is clickable
     }
+    private func iconName(for data: ClipboardData) -> String {
+        switch data {
+        case .text: return "doc.text"
+        case .color: return "paintpalette"
+        case .image: return "photo"
+        }
+    }
+}
+
+struct AsyncThumbnailView: View {
+    let filename: String
+    @State private var image: NSImage?
+    @State private var isLoading = true
     
-    private var timeAgo: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: item.createdAt, relativeTo: Date())
+    var body: some View {
+        Group {
+            if let image = image {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            } else {
+                ZStack {
+                    Color.obsidianSurface // Placeholder bg
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.5)
+                    } else {
+                        Image(systemName: "photo")
+                            .foregroundColor(.luminaTextSecondary)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+        }
+        .task(priority: .background) { // Load in background
+            await loadImage()
+        }
+    }
+    
+    private func loadImage() async {
+        guard let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            isLoading = false
+            return
+        }
+        
+        let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
+        
+        // Check cache if we had one, but currently we just load from disk
+        // Disk I/O should be off main thread
+        let loadedImage = await Task.detached(priority: .background) { () -> NSImage? in
+             return NSImage(contentsOf: fileURL)
+        }.value
+        
+        await MainActor.run {
+            self.image = loadedImage
+            self.isLoading = false
+        }
     }
 }
