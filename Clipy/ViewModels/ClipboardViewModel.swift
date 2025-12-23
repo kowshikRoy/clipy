@@ -246,6 +246,11 @@ class ClipboardViewModel: ObservableObject {
         }
     }
     
+    func resetToDefault() {
+        searchText = ""
+        ensureSelection()
+    }
+    
     func ensureSelection() {
         if let selectedItemID, filteredHistory.contains(where: { $0.id == selectedItemID }) {
             return

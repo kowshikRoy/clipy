@@ -89,6 +89,12 @@ struct ContentView: View {
         }
         .onChange(of: clipboardViewModel.history) { _, _ in clipboardViewModel.ensureSelection() }
         .onChange(of: clipboardViewModel.searchText) { _, _ in clipboardViewModel.ensureSelection() }
+        .onAppear {
+            clipboardViewModel.resetToDefault()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+            clipboardViewModel.resetToDefault()
+        }
     }
 
     private var emptyState: some View {
