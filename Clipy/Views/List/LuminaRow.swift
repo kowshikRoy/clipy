@@ -23,6 +23,7 @@ struct LuminaRow: View, Equatable {
             if case .image(let filename) = item.data {
                 AsyncThumbnailView(filename: filename)
                     .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             } else {
                 Image(systemName: iconName(for: item.data))
                     .font(.system(size: 14))
@@ -76,7 +77,6 @@ struct AsyncThumbnailView: View {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
             } else {
                 ZStack {
                     Color.obsidianSurface // Placeholder bg
@@ -88,7 +88,6 @@ struct AsyncThumbnailView: View {
                             .foregroundColor(.luminaTextSecondary)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }
         .task(priority: .background) { // Load in background
