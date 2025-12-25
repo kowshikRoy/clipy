@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import AppKit
 
 @MainActor
 class ClipboardViewModel: ObservableObject {
@@ -54,12 +55,26 @@ class ClipboardViewModel: ObservableObject {
             }
             .store(in: &cancellables)
             
+
+            
         // Setup Search Subscription
         $searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .removeDuplicates()
             .sink { [weak self] _ in
                 self?.applyFilter()
+            }
+            .store(in: &cancellables)
+            
+        // Auto-select first item when app becomes active
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didActivateApplicationNotification)
+            .filter { notification in
+                guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return false }
+                return app.bundleIdentifier == Bundle.main.bundleIdentifier
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.ensureSelection()
             }
             .store(in: &cancellables)
     }

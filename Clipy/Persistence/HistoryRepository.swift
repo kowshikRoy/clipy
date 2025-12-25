@@ -41,15 +41,22 @@ actor HistoryRepository {
         }
     }
     
+    private var saveTask: Task<Void, Error>?
+    
     func save(_ items: [ClipboardItem]) {
-        guard let historyFileURL else { return }
-        do {
+        saveTask?.cancel()
+        
+        saveTask = Task {
+            // Debounce for 2 seconds
+            try await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+            
+            guard let historyFileURL else { return }
+            
+            // Perform Save
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(items)
             try data.write(to: historyFileURL, options: .atomic)
-        } catch {
-            print("Failed to save clipboard history: \(error.localizedDescription)")
         }
     }
     

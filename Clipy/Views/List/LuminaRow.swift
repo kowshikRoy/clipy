@@ -79,7 +79,7 @@ struct AsyncThumbnailView: View {
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
-                    Color.obsidianSurface // Placeholder bg
+                    Color.obsidianSurface
                     if isLoading {
                         ProgressView()
                             .scaleEffect(0.5)
@@ -90,25 +90,13 @@ struct AsyncThumbnailView: View {
                 }
             }
         }
-        .task(priority: .background) { // Load in background
+        .task(priority: .userInitiated) {
             await loadImage()
         }
     }
     
     private func loadImage() async {
-        guard let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            isLoading = false
-            return
-        }
-        
-        let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
-        
-        // Check cache if we had one, but currently we just load from disk
-        // Disk I/O should be off main thread
-        let loadedImage = await Task.detached(priority: .background) { () -> NSImage? in
-             return NSImage(contentsOf: fileURL)
-        }.value
-        
+        let loadedImage = await ImageLoader.shared.loadImage(filename: filename)
         await MainActor.run {
             self.image = loadedImage
             self.isLoading = false
