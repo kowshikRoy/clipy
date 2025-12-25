@@ -80,17 +80,21 @@ class ClipboardViewModel: ObservableObject {
     }
     
     private func applyFilter() {
-        let currentHistory = history
         let query = searchText
         
-        if query.isEmpty {
-            self.filteredHistory = currentHistory
-            self.ensureSelection()
-            return
-        }
-        
-        Task.detached(priority: .userInitiated) {
-            let filtered = currentHistory.filter { $0.matches(query) }
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let self = self else { return }
+            
+            let filtered: [ClipboardItem]
+            if query.isEmpty {
+                // When empty, we show the loaded "current history" (which is limited by SQL load anyway)
+                // But for consistency we should probably reload or just use what we have.
+                // For now, let's keep the existing behaviour: show what's loaded.
+                filtered = await self.history
+            } else {
+                // Perform SQL FTS Search
+                 filtered = await self.historyRepository.search(query: query)
+            }
             
             await MainActor.run {
                 self.filteredHistory = filtered
@@ -110,17 +114,18 @@ class ClipboardViewModel: ObservableObject {
             existingCount = existing.copyCount + 1
         }
         
-        // Remove existing duplicate logic
+        // Remove existing duplicate logic (InMemory)
         history.removeAll { $0.data == newItem.data }
         
         var finalItem = newItem
         finalItem.copyCount = existingCount
-        // Resetting ID is debatable, but we probably want a new ID to jump to top? 
-        // Or keep ID? If we keep ID, we should update timestamps.
-        // For now, let's treat it as a new "event" at the top, so new ID is fine or reuse ID if we want stable identity.
-        // The original code made a new UUID.
         
         history.insert(finalItem, at: 0)
+        
+        // Persist to SQL
+        Task {
+            await historyRepository.insert(finalItem)
+        }
     }
     
     func copyToPasteboard(item: ClipboardItem) {
@@ -137,6 +142,7 @@ class ClipboardViewModel: ObservableObject {
             if case .image(let filename) = item.data {
                 Task { await historyRepository.deleteImage(filename) }
             }
+            Task { await historyRepository.delete(id: id) }
         }
         
         history.removeAll { $0.id == id }
@@ -152,6 +158,7 @@ class ClipboardViewModel: ObservableObject {
                 Task { await historyRepository.deleteImage(filename) }
             }
         }
+        Task { await historyRepository.deleteAll() }
         history.removeAll()
         selectedItemID = nil
     }
@@ -169,7 +176,9 @@ class ClipboardViewModel: ObservableObject {
                 copyCount: item.copyCount,
                 customMetadata: item.customMetadata
             )
+            
             history[index] = item
+            Task { await historyRepository.insert(item) }
         }
     }
     
@@ -284,10 +293,10 @@ class ClipboardViewModel: ObservableObject {
     }
 
     private func saveHistory() {
-        let items = history
-        Task {
-            await historyRepository.save(items)
-        }
+        // No-op: Items are now saved individually via addOrUpdateItem -> insert
+        // or we need to expose an update method.
+        // For simplicity, we can rely on addOrUpdateItem doing the insert.
+        // But removing items needs to be handled.
     }
     
     func resetToDefault() {
