@@ -13,14 +13,19 @@ struct ContentView: View {
     @ObservedObject var focusManager: AppFocusManager
     @StateObject private var clipboardViewModel: ClipboardViewModel
     
+    @State private var showPermissionAlert = false
+    
     // Metadata State for Dialog
     @State private var isAddingMetadata = false
     @State private var metadataInput = ""
     @FocusState private var isMetadataFocused: Bool
 
-    init(settings: AppSettings, focusManager: AppFocusManager) {
+    @ObservedObject var permissionMonitor: PermissionMonitor
+
+    init(settings: AppSettings, focusManager: AppFocusManager, permissionMonitor: PermissionMonitor) {
         self.appSettings = settings
         self.focusManager = focusManager
+        self.permissionMonitor = permissionMonitor
         _clipboardViewModel = StateObject(wrappedValue: ClipboardViewModel(settings: settings))
     }
 
@@ -65,6 +70,7 @@ struct ContentView: View {
             // MARK: - Footer
             FooterView(
                 focusManager: focusManager,
+                permissionMonitor: permissionMonitor,
                 onPasteToApp: pasteToApp,
                 onCopyToClipboard: copyToClipboard,
                 onEdit: editEntry,
@@ -95,6 +101,16 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
             clipboardViewModel.resetToDefault()
         }
+        .alert("Accessibility Permission Needed", isPresented: $showPermissionAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Clipy needs accessibility permissions using AppleScript to paste directly into other applications.\n\nPlease enable Clipy in System Settings > Privacy & Security > Accessibility.\n\nNote: You may need to restart Clipy after granting permissions.")
+        }
     }
 
     private var emptyState: some View {
@@ -111,15 +127,34 @@ struct ContentView: View {
     // MARK: - Actions
     
     private func pasteToApp() {
-        guard let item = clipboardViewModel.selectedItem else { return }
+        print("[Debug] pasteToApp called")
+        guard let item = clipboardViewModel.selectedItem else {
+            print("[Debug] No item selected")
+            return
+        }
+        
+        // Check permissions via monitor
+        // Force a check just in case, though it polls
+        permissionMonitor.checkPermission()
+        
+        if !permissionMonitor.isTrusted {
+            print("[Debug] showing permission alert")
+            showPermissionAlert = true
+            return
+        }
         
         // 1. Copy to pasteboard
         clipboardViewModel.copyToPasteboard(item: item)
-        // 2. Switch Focus Explicitly
-        if let previousApp = focusManager.previousApp {
-            previousApp.activate(options: [])
-        } else {
-            NSApplication.shared.hide(nil)
+        print("[Debug] Copied item to pasteboard")
+        
+        // 2. Hide Clipy (Return focus to previous app implicitly)
+        NSApplication.shared.hide(nil)
+        print("[Debug] App hidden, waiting 0.2s...")
+        
+        // 3. Simulate Cmd+V using CGEvent
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            print("[Debug] Executing paste...")
+            self.clipboardViewModel.paste()
         }
     }
     

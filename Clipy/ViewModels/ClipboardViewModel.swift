@@ -132,6 +132,10 @@ class ClipboardViewModel: ObservableObject {
         pasteboardService.copyToPasteboard(item: item)
     }
     
+    func paste() {
+        pasteboardService.paste()
+    }
+    
     func togglePin(for itemID: UUID) {
         guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
         history[index].isPinned.toggle()
@@ -301,7 +305,12 @@ class ClipboardViewModel: ObservableObject {
     
     func resetToDefault() {
         searchText = ""
-        ensureSelection()
+        filteredHistory = history
+        if let first = history.first {
+            selectedItemID = first.id
+        } else {
+            selectedItemID = nil
+        }
     }
     
     func ensureSelection() {

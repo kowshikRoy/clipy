@@ -167,6 +167,24 @@ class PasteboardService: ObservableObject {
         }
     }
 
+    func paste() {
+        guard let source = CGEventSource(stateID: .combinedSessionState) else { return }
+        
+        // Press 'V' with Command flag
+        let vKeyCode: CGKeyCode = 0x09 // kVK_ANSI_V
+        
+        guard let eventDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true),
+              let eventUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false) else {
+            return
+        }
+        
+        eventDown.flags = .maskCommand
+        eventUp.flags = .maskCommand
+        
+        eventDown.post(tap: .cghidEventTap)
+        eventUp.post(tap: .cghidEventTap)
+    }
+
     private func isHexColor(_ string: String) -> Bool {
         let pattern = "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
         let regex = try! NSRegularExpression(pattern: pattern)

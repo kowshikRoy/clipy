@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FooterView: View {
     @ObservedObject var focusManager: AppFocusManager
+    @ObservedObject var permissionMonitor: PermissionMonitor
     
     // Actions for the menu
     let onPasteToApp: () -> Void
@@ -25,6 +26,21 @@ struct FooterView: View {
                 Text("Clipy")
                     .font(.custom("Roboto", size: 13))
                     .foregroundColor(.luminaTextSecondary)
+                
+                if !permissionMonitor.isTrusted {
+                    Button(action: {
+                        // Open Accessibility Settings directly
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Missing Accessibility Permissions. Click to fix.")
+                }
             }
             
             Spacer()

@@ -12,12 +12,13 @@ import AppKit
 struct ClipyApp: App {
     @StateObject private var appSettings = AppSettings()
     @StateObject private var appFocusManager = AppFocusManager()
+    @StateObject private var permissionMonitor = PermissionMonitor()
     
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup {
-            ContentView(settings: appSettings, focusManager: appFocusManager)
+            ContentView(settings: appSettings, focusManager: appFocusManager, permissionMonitor: permissionMonitor)
                 // ... (existing modifiers) ...
                 .frame(width: 1000, height: 600)
                 .onAppear {
