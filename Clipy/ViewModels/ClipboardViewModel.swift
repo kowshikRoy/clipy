@@ -19,6 +19,18 @@ class ClipboardViewModel: ObservableObject {
         }
     }
     
+    enum FilterType: String, CaseIterable, Identifiable {
+        case all = "All"
+        case text = "Text"
+        case image = "Image"
+        
+        var id: String { rawValue }
+    }
+    
+    @Published var filterType: FilterType = .all {
+        didSet { applyFilter() }
+    }
+    
     @Published var searchText: String = ""
     @Published var filteredHistory: [ClipboardItem] = [] {
         didSet {
@@ -81,11 +93,12 @@ class ClipboardViewModel: ObservableObject {
     
     private func applyFilter() {
         let query = searchText
+        let currentFilter = filterType
         
         Task.detached(priority: .userInitiated) { [weak self] in
             guard let self = self else { return }
             
-            let filtered: [ClipboardItem]
+            var filtered: [ClipboardItem]
             if query.isEmpty {
                 // When empty, we show the loaded "current history" (which is limited by SQL load anyway)
                 // But for consistency we should probably reload or just use what we have.
@@ -94,6 +107,18 @@ class ClipboardViewModel: ObservableObject {
             } else {
                 // Perform SQL FTS Search
                  filtered = await self.historyRepository.search(query: query)
+            }
+            
+            // Apply Type Filter
+            if currentFilter != .all {
+                filtered = filtered.filter { item in
+                    switch item.data {
+                    case .text, .color:
+                        return currentFilter == .text
+                    case .image:
+                        return currentFilter == .image
+                    }
+                }
             }
             
             await MainActor.run {

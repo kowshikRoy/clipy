@@ -13,27 +13,39 @@ struct ClipboardListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Search Area
-            HStack(spacing: 12) {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.luminaTextSecondary)
-                    TextField("Search...", text: $viewModel.searchText)
-                        .textFieldStyle(.plain)
-                        .font(.custom("Roboto", size: 14))
-                        .fontWeight(.medium)
-                        .foregroundColor(.luminaTextPrimary)
-                        .onSubmit {
-                            onPaste()
-                        }
+            // Search & Filter Area
+            VStack(spacing: 12) {
+                // Search Field
+                HStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.luminaTextSecondary)
+                        TextField("Search...", text: $viewModel.searchText)
+                            .textFieldStyle(.plain)
+                            .font(.custom("Roboto", size: 14))
+                            .fontWeight(.medium)
+                            .foregroundColor(.luminaTextPrimary)
+                            .onSubmit {
+                                onPaste()
+                            }
+                    }
+                    .padding(8)
+                    .background(Color.obsidianSurface)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.obsidianBorder, lineWidth: 0.5)
+                    )
                 }
-                .padding(8)
-                .background(Color.obsidianSurface)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.obsidianBorder, lineWidth: 0.5)
-                )
+                
+                // Filter Picker
+                Picker("Filter", selection: $viewModel.filterType) {
+                    ForEach(ClipboardViewModel.FilterType.allCases) { type in
+                        Text(type.rawValue).tag(type)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
             }
             .padding(16)
             .background(Color.obsidianSurface.opacity(0.5))

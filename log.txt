@@ -1,0 +1,144 @@
+
+Showing All Issues
+
+Build target Clipy of project Clipy with configuration Debug
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Models/ClipboardItem.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/DatabaseManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/HistoryRepository.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/ImageLoader.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/PasteboardService.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/AppFocusManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ClipyApp.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Color+Extensions.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ContentView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/FooterView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/HotKeyManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/SettingsView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Styles.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ToastView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ViewModels/ClipboardViewModel.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/DetailStageView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/MetadataRow.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/ClipboardListView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/LuminaRow.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/VisualEffectView.swift (in target 'Clipy' from project 'Clipy')
+
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Models/ClipboardItem.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/DatabaseManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/HistoryRepository.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/ImageLoader.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/PasteboardService.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/AppFocusManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ClipyApp.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Color+Extensions.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ContentView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/FooterView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/HotKeyManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/SettingsView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Styles.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ToastView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ViewModels/ClipboardViewModel.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/DetailStageView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/MetadataRow.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/ClipboardListView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/LuminaRow.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/VisualEffectView.swift
+
+
+Build target ClipyUITests of project Clipy with configuration Debug
+
+SwiftDriver ClipyUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'ClipyUITests' from project 'Clipy')
+    cd /Users/matrixcode/Desktop/oss/Clipy
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name  -Onone -enforce-exclusivity\=checked @/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/Objects-normal/arm64/.SwiftFileList -DDEBUG -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk -target arm64-apple-macos14.0 -g -module-cache-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -parse-as-library -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/matrixcode/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.0-25A352-28806144b0707e398aac92880fa50324.sdkstatcache -output-file-map /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/Objects-normal/arm64/ClipyUITests-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/Objects-normal/arm64/.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/matrixcode/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/Objects-normal/arm64/ClipyUITests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/-generated-files.hmap -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/-own-target-headers.hmap -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/-all-target-headers.hmap -Xcc -iquote -Xcc /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/-project-headers.hmap -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Products/Debug/include -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/DerivedSources-normal/arm64 -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/DerivedSources/arm64 -Xcc -I/Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/matrixcode/Library/Developer/Xcode/DerivedData/Clipy-cxivhsjjazmtlwfmujmsgprcmbce/Build/Intermediates.noindex/Clipy.build/Debug/ClipyUITests.build/Objects-normal/arm64/-Swift.h -working-directory /Users/matrixcode/Desktop/oss/Clipy -experimental-emit-module-separately -disable-cmo
+
+error: Module name "" is not a valid identifier (in target 'ClipyUITests' from project 'Clipy')
+
+Module name "" is not a valid identifier
+
+
+Build target Clipy of project Clipy with configuration Debug
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Models/ClipboardItem.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/DatabaseManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/HistoryRepository.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/ImageLoader.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/PasteboardService.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/AppFocusManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ClipyApp.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Color+Extensions.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ContentView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/FooterView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/HotKeyManager.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/SettingsView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Styles.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ToastView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ViewModels/ClipboardViewModel.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/DetailStageView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/MetadataRow.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/ClipboardListView.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/LuminaRow.swift (in target 'Clipy' from project 'Clipy')
+warning: Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/VisualEffectView.swift (in target 'Clipy' from project 'Clipy')
+
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Models/ClipboardItem.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/DatabaseManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Persistence/HistoryRepository.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/ImageLoader.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Services/PasteboardService.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/AppFocusManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ClipyApp.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Color+Extensions.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ContentView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/FooterView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/HotKeyManager.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/SettingsView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Styles.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ToastView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/ViewModels/ClipboardViewModel.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/DetailStageView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/Detail/MetadataRow.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/ClipboardListView.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/Views/List/LuminaRow.swift
+
+Skipping duplicate build file in Compile Sources build phase: /Users/matrixcode/Desktop/oss/Clipy/Clipy/VisualEffectView.swift
+
+
+
+Build failed    06.01.2026, 1:10 AM    0.9 seconds

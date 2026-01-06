@@ -51,7 +51,6 @@ final class ClipyUITests: XCTestCase {
         app.launch()
         
         let window = app.windows["Clipy"]
-        print(app.debugDescription) // Debugging output
         
         // Depending on whether we have history or not, we might see "No clips found" or a list
         // We can check for either condition to ensure the UI is in a valid state
