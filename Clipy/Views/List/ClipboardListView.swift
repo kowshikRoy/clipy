@@ -107,8 +107,10 @@ struct ClipboardListView: View {
                 )
                 .onChange(of: viewModel.selectedItemID) { id in
                     if let id = id {
-                        withAnimation {
-                            proxy.scrollTo(id, anchor: nil)
+                        DispatchQueue.main.async {
+                            withAnimation(.spring(duration: 0.3)) {
+                                proxy.scrollTo(id, anchor: .center)
+                            }
                         }
                     }
                 }
