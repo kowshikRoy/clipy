@@ -147,6 +147,9 @@ class ClipboardViewModel: ObservableObject {
         
         history.insert(finalItem, at: 0)
         
+        // Select the new item (Sticky selection behavior: move to top only on new add)
+        selectedItemID = finalItem.id
+        
         // Persist to SQL
         Task {
             await historyRepository.insert(finalItem)
@@ -331,6 +334,12 @@ class ClipboardViewModel: ObservableObject {
     func resetToDefault() {
         searchText = ""
         filteredHistory = history
+        
+        // Sticky selection: Keep current selection if valid
+        if let selectedItemID, history.contains(where: { $0.id == selectedItemID }) {
+            return
+        }
+        
         if let first = history.first {
             selectedItemID = first.id
         } else {
