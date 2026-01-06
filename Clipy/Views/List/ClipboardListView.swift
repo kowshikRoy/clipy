@@ -105,11 +105,12 @@ struct ClipboardListView: View {
                     .frame(width: 0, height: 0)
                     .opacity(0)
                 )
-                .onChange(of: viewModel.selectedItemID) { id in
-                    if let id = id {
+                .onReceive(viewModel.newItemAdded) { _ in
+                    // Scroll to top when a new item is added
+                    if let firstID = viewModel.filteredHistory.first?.id {
                         DispatchQueue.main.async {
-                            withAnimation(.spring(duration: 0.3)) {
-                                proxy.scrollTo(id, anchor: .center)
+                            withAnimation {
+                                proxy.scrollTo(firstID, anchor: .top)
                             }
                         }
                     }

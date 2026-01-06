@@ -41,6 +41,9 @@ class ClipboardViewModel: ObservableObject {
     @Published var isEditing: Bool = false
     @Published var editingText: String = ""
     
+    // Event specific to new items being added
+    let newItemAdded = PassthroughSubject<Void, Never>()
+    
     var selectedItem: ClipboardItem? {
         history.first { $0.id == selectedItemID }
     }
@@ -149,6 +152,9 @@ class ClipboardViewModel: ObservableObject {
         
         // Select the new item (Sticky selection behavior: move to top only on new add)
         selectedItemID = finalItem.id
+        
+        // Notify UI to scroll to top (specific action)
+        newItemAdded.send()
         
         // Persist to SQL
         Task {
