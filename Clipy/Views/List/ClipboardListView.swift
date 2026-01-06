@@ -78,6 +78,9 @@ struct ClipboardListView: View {
             // Recent Section (Scrollable)
             ScrollViewReader { proxy in
                 ScrollView {
+                    // Hidden anchor to scroll to the absolute top
+                    Color.clear.frame(height: 1).id("top-anchor")
+                    
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
                             Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon)) {
@@ -106,12 +109,10 @@ struct ClipboardListView: View {
                     .opacity(0)
                 )
                 .onReceive(viewModel.newItemAdded) { _ in
-                    // Scroll to top when a new item is added
-                    if let firstID = viewModel.filteredHistory.first?.id {
-                        DispatchQueue.main.async {
-                            withAnimation {
-                                proxy.scrollTo(firstID, anchor: .top)
-                            }
+                    // Scroll to top-anchor when a new item is added
+                    DispatchQueue.main.async {
+                        withAnimation {
+                            proxy.scrollTo("top-anchor", anchor: .top)
                         }
                     }
                 }
