@@ -110,6 +110,9 @@ struct ContentView: View {
         } message: {
             Text("Clipy needs accessibility permissions using AppleScript to paste directly into other applications.\n\nPlease enable Clipy in System Settings > Privacy & Security > Accessibility.\n\nNote: You may need to restart Clipy after granting permissions.")
         }
+        .onExitCommand {
+            NSApplication.shared.hide(nil)
+        }
     }
 
     private var emptyState: some View {
