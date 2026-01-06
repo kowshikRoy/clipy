@@ -31,6 +31,16 @@
 		EC62C1EE06F4EB667A75926D /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AA1481DEB2DC507BA91149F /* DatabaseManager.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		DEADBEEF0000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 159266312EC8072A00A0F75C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 159266382EC8072A00A0F75C;
+			remoteInfo = Clipy;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0562563446B1B279A2B49CF7 /* MetadataRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetadataRow.swift; sourceTree = "<group>"; };
 		0F258D87A650D29BA7BA61D0 /* ClipboardViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardViewModel.swift; sourceTree = "<group>"; };
@@ -41,7 +51,7 @@
 		38BD43E09D074463E8BD1DCB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		3D0B9D1798C2F2EC713E9950 /* AppFocusManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppFocusManager.swift; sourceTree = "<group>"; };
 		4247758E33FB68E5E947B9F8 /* ToastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
-		59D2511E2520A778912923FB /* ClipyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		59D2511E2520A778912923FB /* .xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = .xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6936EDA1AC700F0827CD1486 /* ClipboardItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		6CD89F9D1CF1F6A5DB5F5E49 /* HistoryRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HistoryRepository.swift; sourceTree = "<group>"; };
 		720A1B59ADF3101F7D461562 /* Styles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Styles.swift; sourceTree = "<group>"; };
@@ -61,8 +71,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1592663B2EC8072A00A0F75C /* Clipy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = Clipy;
 			sourceTree = "<group>";
 		};
@@ -100,7 +108,7 @@
 		1592663A2EC8072A00A0F75C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				59D2511E2520A778912923FB /* ClipyUITests.xctest */,
+				59D2511E2520A778912923FB /* .xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,7 +144,6 @@
 				283D10A0C2D381C9D9AADC45 /* DetailStageView.swift */,
 				0562563446B1B279A2B49CF7 /* MetadataRow.swift */,
 			);
-			name = Detail;
 			path = Detail;
 			sourceTree = "<group>";
 		};
@@ -154,7 +161,6 @@
 				7AA1481DEB2DC507BA91149F /* DatabaseManager.swift */,
 				6CD89F9D1CF1F6A5DB5F5E49 /* HistoryRepository.swift */,
 			);
-			name = Persistence;
 			path = Persistence;
 			sourceTree = "<group>";
 		};
@@ -164,7 +170,6 @@
 				B541D4F4D8675F955A02C544 /* ImageLoader.swift */,
 				9D0C92ACF5F0D763BCCF4DF4 /* PasteboardService.swift */,
 			);
-			name = Services;
 			path = Services;
 			sourceTree = "<group>";
 		};
@@ -174,7 +179,6 @@
 				743262524A977EF0572D1F13 /* Detail */,
 				C6FF238D24550D11C834F4A7 /* List */,
 			);
-			name = Views;
 			path = Views;
 			sourceTree = "<group>";
 		};
@@ -183,7 +187,6 @@
 			children = (
 				6936EDA1AC700F0827CD1486 /* ClipboardItem.swift */,
 			);
-			name = Models;
 			path = Models;
 			sourceTree = "<group>";
 		};
@@ -193,7 +196,6 @@
 				922F07CAD2BFDF65DDC6F7DA /* ClipboardListView.swift */,
 				B308E9CD25BF146D010583DE /* LuminaRow.swift */,
 			);
-			name = List;
 			path = List;
 			sourceTree = "<group>";
 		};
@@ -216,7 +218,6 @@
 				99471AE72CB735E7059E93D6 /* Views */,
 				974FEF1D86EE79F3297BCEFA /* VisualEffectView.swift */,
 			);
-			name = Clipy;
 			path = Clipy;
 			sourceTree = "<group>";
 		};
@@ -225,7 +226,6 @@
 			children = (
 				0F258D87A650D29BA7BA61D0 /* ClipboardViewModel.swift */,
 			);
-			name = ViewModels;
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
@@ -262,10 +262,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				DEADBEEF0000000000000001 /* PBXTargetDependency */,
 			);
 			name = ClipyUITests;
 			productName = ClipyUITests;
-			productReference = 59D2511E2520A778912923FB /* ClipyUITests.xctest */;
+			productReference = 59D2511E2520A778912923FB /* .xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -279,6 +280,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					159266382EC8072A00A0F75C = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					17CF3B21B3A3C49B39A61F50 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
@@ -358,14 +362,23 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		DEADBEEF0000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 159266382EC8072A00A0F75C /* Clipy */;
+			targetProxy = DEADBEEF0000000000000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		0194CC7AF4EF7B8887C38DE5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = ClipyUITests/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matrixcode.ClipyUITests;
+				PRODUCT_NAME = ClipyUITests;
+				PROVISIONING_PROFILE = "";
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Clipy;
 			};
 			name = Release;
 		};
@@ -492,10 +505,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = NO; CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -522,10 +536,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = NO; CODE_SIGN_ENTITLEMENTS = Clipy/Clipy.entitlements;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -552,8 +567,9 @@
 			buildSettings = {
 				INFOPLIST_FILE = ClipyUITests/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matrixcode.ClipyUITests;
+				PRODUCT_NAME = ClipyUITests;
+				PROVISIONING_PROFILE = "";
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Clipy;
 			};
 			name = Debug;
 		};
