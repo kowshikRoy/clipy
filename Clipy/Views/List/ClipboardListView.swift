@@ -105,6 +105,13 @@ struct ClipboardListView: View {
                     .frame(width: 0, height: 0)
                     .opacity(0)
                 )
+                .onChange(of: viewModel.selectedItemID) { id in
+                    if let id = id {
+                        withAnimation {
+                            proxy.scrollTo(id, anchor: nil)
+                        }
+                    }
+                }
             }
         }
     }
