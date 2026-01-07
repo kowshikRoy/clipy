@@ -82,15 +82,26 @@ struct ClipboardListView: View {
                     Color.clear.frame(height: 1).id("top-anchor")
                     
                     LazyVStack(spacing: 0) {
-                        ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
-                            Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon)) {
-                                ForEach(items) { item in
-                                    LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
-                                        .id(item.id)
-                                        .onTapGesture {
-                                            viewModel.selectedItemID = item.id
-                                        }
+                        if viewModel.searchText.isEmpty {
+                            ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
+                                Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon)) {
+                                    ForEach(items) { item in
+                                        LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
+                                            .id(item.id)
+                                            .onTapGesture {
+                                                viewModel.selectedItemID = item.id
+                                            }
+                                    }
                                 }
+                            }
+                        } else {
+                            // Flat list during search
+                            ForEach(viewModel.filteredHistory) { item in
+                                LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
+                                    .id(item.id)
+                                    .onTapGesture {
+                                        viewModel.selectedItemID = item.id
+                                    }
                             }
                         }
                     }

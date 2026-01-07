@@ -8,7 +8,16 @@ class AppFocusManager: ObservableObject {
     private var subscribers: Set<AnyCancellable> = []
     
     init() {
+        initializePreviousApp()
         setupObservers()
+    }
+    
+    private func initializePreviousApp() {
+        // Look at the currently frontmost app when Clipy starts up
+        if let frontmost = NSWorkspace.shared.frontmostApplication,
+           frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
+            previousApp = frontmost
+        }
     }
     
     private func setupObservers() {
