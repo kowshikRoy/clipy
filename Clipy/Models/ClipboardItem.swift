@@ -14,6 +14,18 @@ enum ClipboardData: Codable, Hashable {
     case text(String, sourceURL: String?)
     case color(String)
     case image(String) // Path to image file relative to app support dir
+    
+    /// Returns a version of the content suitable for deduplication (ignoring whitespace and metadata)
+    var normalizationKey: String {
+        switch self {
+        case .text(let string, _):
+            return string.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .color(let hex):
+            return hex.lowercased()
+        case .image(let path):
+            return path // Images are already deduplicated by SHA256 hash in PasteboardService
+        }
+    }
 }
 
 struct ClipboardItem: Identifiable, Codable, Hashable {
