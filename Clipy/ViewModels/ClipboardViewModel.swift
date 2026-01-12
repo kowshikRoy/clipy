@@ -333,7 +333,18 @@ class ClipboardViewModel: ObservableObject {
                 // Allow scrolling for any item that is not pinned
                 if !pinnedItems.contains(where: { $0.id == newItem.id }) {
                     withAnimation {
-                        proxy.scrollTo(newItem.id, anchor: nil)
+                        // If searching, always scroll to item (no named sections)
+                        if !searchText.isEmpty {
+                            proxy.scrollTo(newItem.id, anchor: nil)
+                        } else {
+                            // Check if this item is the FIRST in a category
+                            if let category = categorizedHistory.first(where: { $0.1.first?.id == newItem.id }) {
+                                // Scroll to HEADER
+                                proxy.scrollTo(category.0.title, anchor: .top)
+                            } else {
+                                proxy.scrollTo(newItem.id, anchor: nil)
+                            }
+                        }
                     }
                 }
             }

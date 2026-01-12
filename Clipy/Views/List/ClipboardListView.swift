@@ -84,7 +84,7 @@ struct ClipboardListView: View {
                     LazyVStack(spacing: 0) {
                         if viewModel.searchText.isEmpty {
                             ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
-                                Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon)) {
+                                Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon).id(category.title)) {
                                     ForEach(items) { item in
                                         LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
                                             .id(item.id)
