@@ -138,12 +138,20 @@ class ClipboardViewModel: ObservableObject {
     func addOrUpdateItem(_ newItem: ClipboardItem) {
         // Check for existing item to increment count
         var existingCount = 1
-        if let existing = history.first(where: { $0.data == newItem.data }) {
+        // Use normalizationKey to deduplicate across different source URLs/Apps if content is same
+        if let existing = history.first(where: { $0.data.normalizationKey == newItem.data.normalizationKey }) {
             existingCount = existing.copyCount + 1
+
+            // If duplicate exists, we should delete the OLD one from Repository so it doesn't persist
+            // The new one will be inserted below
+            let oldID = existing.id
+            Task {
+                await historyRepository.delete(id: oldID)
+            }
         }
         
-        // Remove existing duplicate logic (InMemory)
-        history.removeAll { $0.data == newItem.data }
+        // Remove existing duplicate logic (InMemory) using normalizationKey
+        history.removeAll { $0.data.normalizationKey == newItem.data.normalizationKey }
         
         var finalItem = newItem
         finalItem.copyCount = existingCount
