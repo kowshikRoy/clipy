@@ -238,6 +238,7 @@ class ClipboardViewModel: ObservableObject {
     // MARK: - Presentation Logic
     
     @Published var pinnedItems: [ClipboardItem] = []
+    @Published var unpinnedHistory: [ClipboardItem] = []
     @Published var categorizedHistory: [(DateCategory, [ClipboardItem])] = []
     
     // Combined history in visual order for navigation
@@ -252,6 +253,7 @@ class ClipboardViewModel: ObservableObject {
         let recentItems = currentFiltered.filter { !$0.isPinned }
         
         self.pinnedItems = pItems
+        self.unpinnedHistory = recentItems
         self.visualHistory = pItems + recentItems
         
         let calendar = Calendar.current

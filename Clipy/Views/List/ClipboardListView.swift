@@ -96,7 +96,7 @@ struct ClipboardListView: View {
                             }
                         } else {
                             // Flat list during search
-                            ForEach(viewModel.filteredHistory) { item in
+                            ForEach(viewModel.unpinnedHistory) { item in
                                 LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
                                     .id(item.id)
                                     .onTapGesture {
