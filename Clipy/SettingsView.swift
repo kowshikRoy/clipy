@@ -74,12 +74,14 @@ class AppSettings: ObservableObject {
 enum SettingsTab: String, CaseIterable {
     case general = "General"
     case privacy = "Privacy"
+    case maintenance = "Maintenance"
     case about = "About"
     
     var icon: String {
         switch self {
         case .general: return "gearshape"
         case .privacy: return "hand.raised"
+        case .maintenance: return "wrench.and.screwdriver"
         case .about: return "info.circle"
         }
     }
@@ -119,6 +121,8 @@ struct SettingsView: View {
                             GeneralSettingsView(settings: settings)
                         } else if activeTab == .privacy {
                             PrivacySettingsView(settings: settings)
+                        } else if activeTab == .maintenance {
+                            MaintenanceSettingsView()
                         } else {
                             AboutSettingsView()
                         }
@@ -708,6 +712,92 @@ struct BlockingRow: View {
              if FileManager.default.fileExists(atPath: systemPath) {
                  self.appIcon = NSWorkspace.shared.icon(forFile: systemPath)
              }
+        }
+    }
+}
+
+// MARK: - Maintenance View
+
+struct MaintenanceSettingsView: View {
+    @State private var isDeduplicating = false
+    @State private var statusMessage: String? = nil
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Maintenance")
+                .font(.custom("Roboto", size: 20))
+                .fontWeight(.medium)
+                .foregroundColor(.luminaTextPrimary)
+            
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Database Management")
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaTextSecondary)
+                
+                Text("If you notice duplicate entries or search issues, you can run a cleanup task. This will remove duplicate clipboard history items and refresh the search index.")
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextSecondary.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                HStack {
+                    Button(action: runDeduplication) {
+                        HStack {
+                            if isDeduplicating {
+                                ProgressView()
+                                    .scaleEffect(0.5)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                            }
+                            Text(isDeduplicating ? "Cleaning..." : "Deduplicate History")
+                        }
+                        .frame(minWidth: 140)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(Color.luminaAccent)
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isDeduplicating)
+                    
+                    if let message = statusMessage {
+                        Text(message)
+                            .font(.custom("Roboto", size: 13))
+                            .foregroundColor(.luminaTextSecondary)
+                            .transition(.opacity)
+                    }
+                }
+            }
+            .padding(20)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
+            
+            Spacer()
+        }
+    }
+    
+    private func runDeduplication() {
+        isDeduplicating = true
+        statusMessage = nil
+        
+        Task {
+            // Force deduplication by resetting the key
+            UserDefaults.standard.set(false, forKey: "has_deduplicated_history_v1")
+            
+            let repo = HistoryRepository()
+            await repo.deduplicate()
+            
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            
+            await MainActor.run {
+                isDeduplicating = false
+                statusMessage = "Cleanup complete."
+            }
         }
     }
 }
