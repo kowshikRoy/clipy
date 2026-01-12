@@ -491,7 +491,7 @@ struct PrivacySettingsView: View {
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 30, height: 30)
-                            .background(Color.luminaAccent)
+                            .background(Color.accentColor)
                             .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
@@ -557,7 +557,7 @@ struct PrivacySettingsView: View {
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 30, height: 30)
-                            .background(Color.luminaAccent)
+                            .background(Color.accentColor)
                             .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
@@ -750,11 +750,13 @@ struct MaintenanceSettingsView: View {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                             }
                             Text(isDeduplicating ? "Cleaning..." : "Deduplicate History")
+                                .lineLimit(1)
+                                .fixedSize()
                         }
                         .frame(minWidth: 140)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 16)
-                        .background(Color.luminaAccent)
+                        .background(Color.accentColor)
                         .foregroundColor(.white)
                         .cornerRadius(6)
                     }
