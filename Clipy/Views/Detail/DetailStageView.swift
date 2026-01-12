@@ -16,31 +16,10 @@ struct DetailStageView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Adaptive Header
-            HStack {
-                let (icon, color, title): (String, Color, String) = {
-                    switch item.data {
-                    case .text:
-                        return ("doc.text", .luminaTextPrimary, "Text")
-                    case .color:
-                        return ("paintpalette", .purple.opacity(0.8), "Color")
-                    case .image:
-                        return ("photo", .pink.opacity(0.8), "Image")
-                    }
-                }()
-                
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(color)
-                
-                Text(title)
-                    .font(.custom("Roboto", size: 24))
-                    .fontWeight(.light)
-                    .foregroundColor(.luminaTextPrimary)
-                
-                Spacer()
-                
-                if isEditing {
+            // Adaptive Header/Actions
+            if isEditing {
+                HStack {
+                    Spacer()
                     Button("Cancel", action: onCancel)
                         .buttonStyle(.plain)
                         .foregroundColor(.luminaTextSecondary)
@@ -57,8 +36,8 @@ struct DetailStageView: View {
                         .background(Color.accentColor)
                         .cornerRadius(6)
                 }
+                .padding(.bottom, 20)
             }
-            .padding(.bottom, 20)
             
             // Content
             if isEditing {
@@ -84,16 +63,24 @@ struct DetailStageView: View {
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
-                                        .cornerRadius(8)
+                                        .cornerRadius(4)
                                 }
+                                .frame(maxHeight: .infinity) // Fill space
+                                .padding(4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.obsidianBorder, lineWidth: 1)
+                                )
                             }
                         } else {
                             Text("Image not found")
                                 .foregroundColor(.luminaTextSecondary)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                     } else {
                         Text("Error loading image")
                             .foregroundColor(.luminaTextSecondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
 
                 } else {
@@ -104,11 +91,20 @@ struct DetailStageView: View {
                             .lineSpacing(6)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .textSelection(.enabled)
+                            .padding(12)
                     }
+                    .frame(maxHeight: .infinity) // Fill space
+                    .background(Color.obsidianSurface.opacity(0.3)) 
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.obsidianBorder, lineWidth: 1)
+                    )
                 }
             }
             
-            Spacer()
+            // Fixed height content implies we don't need Spacer if we use maxHeight .infinity
+            // Spacer() // Removed Spacer
             
             // Metadata Panel
             VStack(alignment: .leading, spacing: 5) {
@@ -169,7 +165,7 @@ struct DetailStageView: View {
                     MetadataRow(icon: "folder", label: "Type", value: typeTitle)
                 }
                 .padding(.vertical, 8)
-
+                .frame(height: 160, alignment: .top)
                 .background(Color.obsidianSurface)
                 .cornerRadius(8)
                 .overlay(
