@@ -140,7 +140,7 @@ struct FooterView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color.obsidianSurface.opacity(0.9)) // Darker footer background
+        .background(Color.obsidianSurface.opacity(0.9).ignoresSafeArea(edges: .bottom)) // Darker footer background
         .overlay(
             Rectangle()
                 .frame(height: 1)
