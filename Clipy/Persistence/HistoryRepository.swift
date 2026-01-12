@@ -7,6 +7,7 @@
 
 import Foundation
 import SQLite3
+import CryptoKit
 
 actor HistoryRepository {
     private let dbManager = DatabaseManager.shared
@@ -231,5 +232,104 @@ actor HistoryRepository {
             let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
             try? fileManager.removeItem(at: fileURL)
         }
+    }
+    
+    func deduplicate() {
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: "has_deduplicated_history_v1") {
+            return
+        }
+        
+        print("[HistoryRepository] Starting one-time deduplication...")
+        
+        // 1. Load ALL items (this might be heavy but needed for correct dedupe)
+        // We use a high limit to ensure we get most of them.
+        let allItems = load(limit: 10000)
+        
+        // 2. Group by Content Hash (ignoring source app)
+        var uniqueGroups: [String: [ClipboardItem]] = [:]
+        
+        for item in allItems {
+            var key = item.data.normalizationKey
+            
+            // If image, calculate hash from FILE CONTENT to be robust
+            if case .image(let path) = item.data {
+                if let hash = computeFileHash(path: path) {
+                    key = "image_hash:" + hash
+                } else {
+                    // Fallback to path if file missing
+                    key = "image_path:" + path
+                }
+            } else if case .color = item.data {
+                key = "color:" + key
+            } else {
+                key = "text:" + key
+            }
+            
+            uniqueGroups[key, default: []].append(item)
+        }
+        
+        var deletedCount = 0
+        
+        for (_, group) in uniqueGroups where group.count > 1 {
+            // Sort: Pinned first, then Newest first
+            let sorted = group.sorted { (a, b) -> Bool in
+                if a.isPinned != b.isPinned {
+                    return a.isPinned
+                }
+                return a.createdAt > b.createdAt
+            }
+            
+            // Keep the first one
+            guard let keeper = sorted.first else { continue }
+            
+            // The rest are to be deleted
+            let duplicates = sorted.dropFirst()
+            
+            // Aggregate copy counts
+            let totalCopies = group.reduce(0) { $0 + $1.copyCount }
+            // If the keeper has fewer copies than total, update it (approximated)
+            if keeper.copyCount < totalCopies {
+                 // We can update the keeper's copy count in DB
+                 updateCopyCount(id: keeper.id, count: totalCopies)
+            }
+            
+            for dup in duplicates {
+                delete(id: dup.id)
+                deletedCount += 1
+                
+                // If it was an image with a DIFFERENT path than keeper, delete the file (orphan)
+                if case .image(let dupPath) = dup.data,
+                   case .image(let keeperPath) = keeper.data,
+                   dupPath != keeperPath {
+                    deleteImage(dupPath)
+                }
+            }
+        }
+        
+        print("[HistoryRepository] Deduplication complete. Removed \(deletedCount) items.")
+        defaults.set(true, forKey: "has_deduplicated_history_v1")
+    }
+    
+    private func computeFileHash(path: String) -> String? {
+        let fileManager = FileManager.default
+        guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(path)
+        
+        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        
+        let hashData = SHA256.hash(data: data)
+        return hashData.compactMap { String(format: "%02x", $0) }.joined()
+    }
+    
+    private func updateCopyCount(id: UUID, count: Int) {
+        let sql = "UPDATE clipboard_items SET copy_count = ? WHERE id = ?"
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_int(statement, 1, Int32(count))
+            sqlite3_bind_text(statement, 2, (id.uuidString as NSString).utf8String, -1, nil)
+            sqlite3_step(statement)
+        }
+        sqlite3_finalize(statement)
     }
 }
