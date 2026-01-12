@@ -43,6 +43,15 @@ struct ClipyApp: App {
                 }
         }
         .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings") {
+                    NSApp.activate(ignoringOtherApps: true)
+                    openWindow(id: "settings")
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+        }
         
         MenuBarExtra("Clipy", systemImage: "paperclip") {
             Button("Show Clipy") {
