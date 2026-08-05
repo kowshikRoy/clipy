@@ -432,4 +432,109 @@ actor HistoryRepository {
         }
         sqlite3_finalize(statement)
     }
+    
+    @discardableResult
+    func executeDeletionPolicy(retentionDays: Int, cleanNoise: Bool, cleanLargeTransient: Bool) -> (itemsDeleted: Int, imagesDeleted: Int) {
+        let db = dbManager.getDB()
+        var totalItemsDeleted = 0
+        var totalImagesDeleted = 0
+        
+        // 1. Time-Based Retention (if retentionDays > 0, default 90 days)
+        if retentionDays > 0 {
+            let cutoffTimestamp = Date().timeIntervalSinceReferenceDate - Double(retentionDays * 86400)
+            let sql = "DELETE FROM clipboard_items WHERE is_pinned = 0 AND custom_metadata IS NULL AND created_at < ?"
+            var statement: OpaquePointer?
+            if sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK {
+                sqlite3_bind_double(statement, 1, cutoffTimestamp)
+                if sqlite3_step(statement) == SQLITE_DONE {
+                    totalItemsDeleted += Int(sqlite3_changes(db))
+                }
+            }
+            sqlite3_finalize(statement)
+        }
+        
+        // 2. Noise & Whitespace Pruning (copy_count = 1, older than 30 days)
+        if cleanNoise {
+            let noiseCutoff = Date().timeIntervalSinceReferenceDate - (30.0 * 86400.0)
+            let sql = """
+            DELETE FROM clipboard_items 
+            WHERE is_pinned = 0 
+              AND custom_metadata IS NULL 
+              AND copy_count = 1 
+              AND (trim(content) = '' OR length(trim(content)) <= 2)
+              AND created_at < ?
+            """
+            var statement: OpaquePointer?
+            if sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK {
+                sqlite3_bind_double(statement, 1, noiseCutoff)
+                if sqlite3_step(statement) == SQLITE_DONE {
+                    totalItemsDeleted += Int(sqlite3_changes(db))
+                }
+            }
+            sqlite3_finalize(statement)
+        }
+        
+        // 3. Transient Large Copy-Paste Pruning (copy_count = 1, length > 1000, older than 30 days)
+        if cleanLargeTransient {
+            let largeCutoff = Date().timeIntervalSinceReferenceDate - (30.0 * 86400.0)
+            let sql = """
+            DELETE FROM clipboard_items 
+            WHERE is_pinned = 0 
+              AND custom_metadata IS NULL 
+              AND copy_count = 1 
+              AND length(content) > 1000
+              AND created_at < ?
+            """
+            var statement: OpaquePointer?
+            if sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK {
+                sqlite3_bind_double(statement, 1, largeCutoff)
+                if sqlite3_step(statement) == SQLITE_DONE {
+                    totalItemsDeleted += Int(sqlite3_changes(db))
+                }
+            }
+            sqlite3_finalize(statement)
+        }
+        
+        // 4. Orphaned Image Disk Cleanup
+        totalImagesDeleted = cleanOrphanedImages()
+        
+        print("[DeletionPolicy] Completed: \(totalItemsDeleted) items deleted, \(totalImagesDeleted) orphaned images deleted.")
+        return (totalItemsDeleted, totalImagesDeleted)
+    }
+    
+    private func cleanOrphanedImages() -> Int {
+        let fileManager = FileManager.default
+        guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return 0 }
+        let imagesDirectoryURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent("images")
+        
+        guard let existingFiles = try? fileManager.contentsOfDirectory(at: imagesDirectoryURL, includingPropertiesForKeys: nil) else {
+            return 0
+        }
+        
+        // Get valid image paths from DB
+        var validPaths = Set<String>()
+        let sql = "SELECT content FROM clipboard_items WHERE type = 'image'"
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
+            while sqlite3_step(statement) == SQLITE_ROW {
+                if let content = sqlite3_column_text(statement, 0) {
+                    let path = String(cString: content)
+                    validPaths.insert(path)
+                    validPaths.insert((path as NSString).lastPathComponent)
+                }
+            }
+        }
+        sqlite3_finalize(statement)
+        
+        var removedCount = 0
+        for fileURL in existingFiles {
+            let filename = fileURL.lastPathComponent
+            if !validPaths.contains(filename) && !validPaths.contains("images/\(filename)") {
+                if (try? fileManager.removeItem(at: fileURL)) != nil {
+                    removedCount += 1
+                }
+            }
+        }
+        return removedCount
+    }
 }

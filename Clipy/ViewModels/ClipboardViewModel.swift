@@ -55,9 +55,14 @@ class ClipboardViewModel: ObservableObject {
     init(settings: AppSettings) {
         self.pasteboardService = PasteboardService(settings: settings)
         
-        // Initial Load and Deduplication
+        // Initial Load, Deduplication, and Deletion Policy
         Task {
             await historyRepository.deduplicate()
+            await historyRepository.executeDeletionPolicy(
+                retentionDays: settings.retentionDays,
+                cleanNoise: settings.autoCleanupNoise,
+                cleanLargeTransient: settings.autoCleanupLargeTransient
+            )
             let items = await historyRepository.load()
             self.history = items
         }

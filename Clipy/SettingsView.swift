@@ -33,6 +33,24 @@ class AppSettings: ObservableObject {
         }
     }
     
+    @Published var retentionDays: Int {
+        didSet {
+            UserDefaults.standard.set(retentionDays, forKey: "retentionDays")
+        }
+    }
+    
+    @Published var autoCleanupNoise: Bool {
+        didSet {
+            UserDefaults.standard.set(autoCleanupNoise, forKey: "autoCleanupNoise")
+        }
+    }
+    
+    @Published var autoCleanupLargeTransient: Bool {
+        didSet {
+            UserDefaults.standard.set(autoCleanupLargeTransient, forKey: "autoCleanupLargeTransient")
+        }
+    }
+    
     init() {
         self.blockedApps = AppSettings.load(key: "blockedApps")
         self.blockedHosts = AppSettings.load(key: "blockedHosts")
@@ -40,6 +58,11 @@ class AppSettings: ObservableObject {
         // Default to Cmd+Shift+V
         self.hotkeyKeyCode = UserDefaults.standard.object(forKey: "hotkeyKeyCode") as? Int ?? kVK_ANSI_V
         self.hotkeyModifiers = UserDefaults.standard.object(forKey: "hotkeyModifiers") as? Int ?? cmdKey + shiftKey
+        
+        // Deletion Policy Defaults (Forever / 0 default so old history is never removed without explicit user action)
+        self.retentionDays = UserDefaults.standard.object(forKey: "retentionDays") as? Int ?? 0
+        self.autoCleanupNoise = UserDefaults.standard.object(forKey: "autoCleanupNoise") as? Bool ?? true
+        self.autoCleanupLargeTransient = UserDefaults.standard.object(forKey: "autoCleanupLargeTransient") as? Bool ?? true
     }
     
     func isBlocked(app: String?, host: String?) -> Bool {
@@ -122,7 +145,7 @@ struct SettingsView: View {
                         } else if activeTab == .privacy {
                             PrivacySettingsView(settings: settings)
                         } else if activeTab == .maintenance {
-                            MaintenanceSettingsView()
+                            MaintenanceSettingsView(settings: settings)
                         } else {
                             AboutSettingsView()
                         }
@@ -719,22 +742,25 @@ struct BlockingRow: View {
 // MARK: - Maintenance View
 
 struct MaintenanceSettingsView: View {
+    @ObservedObject var settings: AppSettings
     @State private var isDeduplicating = false
+    @State private var isCleaning = false
     @State private var statusMessage: String? = nil
+    @State private var cleanupStatusMessage: String? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text("Maintenance")
+            Text("Maintenance & Retention")
                 .font(.custom("Roboto", size: 20))
                 .fontWeight(.medium)
                 .foregroundColor(.luminaTextPrimary)
             
             VStack(alignment: .leading, spacing: 16) {
-                Text("Database Management")
+                Text("Database Deduplication")
                     .font(.custom("Roboto", size: 14))
                     .foregroundColor(.luminaTextSecondary)
                 
-                Text("If you notice duplicate entries or search issues, you can run a cleanup task. This will remove duplicate clipboard history items and refresh the search index.")
+                Text("Remove duplicate clipboard history items and refresh the search index.")
                     .font(.custom("Roboto", size: 13))
                     .foregroundColor(.luminaTextSecondary.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
@@ -779,6 +805,80 @@ struct MaintenanceSettingsView: View {
                     .stroke(Color.obsidianBorder, lineWidth: 0.5)
             )
             
+            VStack(alignment: .leading, spacing: 16) {
+                Text("History Deletion & Retention Policy")
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaTextSecondary)
+                
+                Text("Automatically remove unpinned, untagged items that might not ever be needed. (Pinned and tagged items are permanently preserved).")
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextSecondary.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                HStack(spacing: 20) {
+                    Text("Keep History For:")
+                        .font(.custom("Roboto", size: 13))
+                        .foregroundColor(.luminaTextPrimary)
+                    
+                    Picker("", selection: $settings.retentionDays) {
+                        Text("30 Days").tag(30)
+                        Text("60 Days").tag(60)
+                        Text("90 Days (Default)").tag(90)
+                        Text("1 Year").tag(365)
+                        Text("Forever").tag(0)
+                    }
+                    .frame(width: 150)
+                    .labelsHidden()
+                }
+                
+                Toggle("Auto-clean noise & whitespace snippets (>30 days old)", isOn: $settings.autoCleanupNoise)
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextPrimary)
+                
+                Toggle("Auto-clean large transient copies (>30 days old, >1,000 chars)", isOn: $settings.autoCleanupLargeTransient)
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextPrimary)
+                
+                HStack {
+                    Button(action: runDeletionPolicy) {
+                        HStack {
+                            if isCleaning {
+                                ProgressView()
+                                    .scaleEffect(0.5)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Image(systemName: "trash")
+                            }
+                            Text(isCleaning ? "Scanning..." : "Run Deletion Policy Now")
+                                .lineLimit(1)
+                                .fixedSize()
+                        }
+                        .frame(minWidth: 180)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(Color.red.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isCleaning)
+                    
+                    if let message = cleanupStatusMessage {
+                        Text(message)
+                            .font(.custom("Roboto", size: 13))
+                            .foregroundColor(.luminaTextSecondary)
+                            .transition(.opacity)
+                    }
+                }
+            }
+            .padding(20)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
+            
             Spacer()
         }
     }
@@ -788,9 +888,6 @@ struct MaintenanceSettingsView: View {
         statusMessage = nil
         
         Task {
-            // Force deduplication by resetting the key
-            UserDefaults.standard.set(false, forKey: "has_deduplicated_history_v1")
-            
             let repo = HistoryRepository()
             await repo.deduplicate()
             
@@ -799,6 +896,27 @@ struct MaintenanceSettingsView: View {
             await MainActor.run {
                 isDeduplicating = false
                 statusMessage = "Cleanup complete."
+            }
+        }
+    }
+    
+    private func runDeletionPolicy() {
+        isCleaning = true
+        cleanupStatusMessage = nil
+        
+        Task {
+            let repo = HistoryRepository()
+            let result = await repo.executeDeletionPolicy(
+                retentionDays: settings.retentionDays,
+                cleanNoise: settings.autoCleanupNoise,
+                cleanLargeTransient: settings.autoCleanupLargeTransient
+            )
+            
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            
+            await MainActor.run {
+                isCleaning = false
+                cleanupStatusMessage = "Removed \(result.itemsDeleted) items & \(result.imagesDeleted) orphaned images."
             }
         }
     }
