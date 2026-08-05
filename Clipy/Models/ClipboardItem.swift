@@ -32,7 +32,7 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     let id: UUID
     let data: ClipboardData
     let createdAt: Date
-    let sourceApp: String?
+    var sourceApp: String?
     var isPinned: Bool = false
     var copyCount: Int = 1
     var customMetadata: String? = nil
@@ -97,12 +97,24 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         guard !terms.isEmpty else { return true }
         
         return terms.allSatisfy { term in
-            let termString = String(term)
+            var termString = String(term)
+            if termString.hasPrefix("#") {
+                termString = String(termString.dropFirst())
+            } else if termString.hasPrefix("tag:") {
+                termString = String(termString.dropFirst(4))
+            } else if termString.hasPrefix("note:") {
+                termString = String(termString.dropFirst(5))
+            }
+            
+            // 0. Custom Metadata (Tag/Note) Match
+            if let meta = customMetadata?.lowercased(), meta.contains(termString) {
+                return true
+            }
             
             // 1. Content Match
             if textRepresentation.lowercased().contains(termString) { return true }
             
-            // 2. Metadata Match (Source Aapp)
+            // 2. Metadata Match (Source App)
             if let app = sourceApp?.lowercased(), app.contains(termString) { return true }
             
             return false

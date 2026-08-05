@@ -70,18 +70,68 @@ actor HistoryRepository {
     
     func search(query: String) -> [ClipboardItem] {
          var items: [ClipboardItem] = []
-         // FTS Match
-         let sql = """
+         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+         guard !trimmedQuery.isEmpty else { return items }
+         
+         // Check for explicit tag search prefix (#tag, tag:tag, note:tag)
+         var tagFilter: String? = nil
+         let lower = trimmedQuery.lowercased()
+         if lower.hasPrefix("#") {
+             let term = String(trimmedQuery.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines)
+             if !term.isEmpty { tagFilter = term }
+         } else if lower.hasPrefix("tag:") {
+             let term = String(trimmedQuery.dropFirst(4)).trimmingCharacters(in: .whitespacesAndNewlines)
+             if !term.isEmpty { tagFilter = term }
+         } else if lower.hasPrefix("note:") {
+             let term = String(trimmedQuery.dropFirst(5)).trimmingCharacters(in: .whitespacesAndNewlines)
+             if !term.isEmpty { tagFilter = term }
+         }
+         
+         let sql: String
+         let ftsQuery: String
+         let likeQuery: String
+         
+         if let tag = tagFilter {
+             sql = """
+             SELECT * FROM clipboard_items 
+             WHERE custom_metadata LIKE ?
+             ORDER BY created_at DESC LIMIT 500
+             """
+             likeQuery = "%\(tag)%"
+             var statement: OpaquePointer?
+             if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
+                 sqlite3_bind_text(statement, 1, (likeQuery as NSString).utf8String, -1, nil)
+                 while sqlite3_step(statement) == SQLITE_ROW {
+                     if let item = parseItem(from: statement) {
+                         items.append(item)
+                     }
+                 }
+             } else {
+                 print("Tag Search prepare failed")
+             }
+             sqlite3_finalize(statement)
+             return items
+         }
+         
+         let sanitizedForFTS = trimmedQuery.replacingOccurrences(of: "\"", with: " ")
+         ftsQuery = "\"\(sanitizedForFTS)\"* OR \"\(sanitizedForFTS)\""
+         likeQuery = "%\(trimmedQuery)%"
+         
+         sql = """
          SELECT * FROM clipboard_items 
          WHERE rowid IN (SELECT rowid FROM clipboard_search WHERE clipboard_search MATCH ?)
+            OR custom_metadata LIKE ?
+            OR source_app LIKE ?
+            OR content LIKE ?
          ORDER BY created_at DESC LIMIT 500
          """
         
         var statement: OpaquePointer?
         if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
-             // Bind query
-             let ftsQuery = "\"\(query)\""
              sqlite3_bind_text(statement, 1, (ftsQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 2, (likeQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 3, (likeQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 4, (likeQuery as NSString).utf8String, -1, nil)
              
             while sqlite3_step(statement) == SQLITE_ROW {
                 if let item = parseItem(from: statement) {
@@ -90,6 +140,39 @@ actor HistoryRepository {
             }
         } else {
              print("Search prepare failed")
+        }
+        sqlite3_finalize(statement)
+        return items
+    }
+    
+    func findDuplicates(of item: ClipboardItem) -> [ClipboardItem] {
+        var items: [ClipboardItem] = []
+        let sql: String
+        let bindValue: String
+        
+        switch item.data {
+        case .text(let text, _):
+            sql = "SELECT * FROM clipboard_items WHERE type = 'text' AND (content = ? OR trim(content) = ?)"
+            bindValue = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .color(let hex):
+            sql = "SELECT * FROM clipboard_items WHERE type = 'color' AND lower(content) = ?"
+            bindValue = hex.lowercased()
+        case .image(let path):
+            sql = "SELECT * FROM clipboard_items WHERE type = 'image' AND content = ?"
+            bindValue = path
+        }
+        
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_text(statement, 1, (bindValue as NSString).utf8String, -1, nil)
+            if case .text = item.data {
+                sqlite3_bind_text(statement, 2, (bindValue as NSString).utf8String, -1, nil)
+            }
+            while sqlite3_step(statement) == SQLITE_ROW {
+                if let found = parseItem(from: statement), found.id != item.id {
+                    items.append(found)
+                }
+            }
         }
         sqlite3_finalize(statement)
         return items
@@ -235,29 +318,21 @@ actor HistoryRepository {
     }
     
     func deduplicate() {
-        let defaults = UserDefaults.standard
-        if defaults.bool(forKey: "has_deduplicated_history_v1") {
-            return
-        }
+        print("[HistoryRepository] Starting deduplication...")
         
-        print("[HistoryRepository] Starting one-time deduplication...")
+        // 1. Load ALL items for complete deduplication across the database
+        let allItems = load(limit: 100000)
         
-        // 1. Load ALL items (this might be heavy but needed for correct dedupe)
-        // We use a high limit to ensure we get most of them.
-        let allItems = load(limit: 10000)
-        
-        // 2. Group by Content Hash (ignoring source app)
+        // 2. Group by Content normalizationKey (ignoring source app)
         var uniqueGroups: [String: [ClipboardItem]] = [:]
         
         for item in allItems {
             var key = item.data.normalizationKey
             
-            // If image, calculate hash from FILE CONTENT to be robust
             if case .image(let path) = item.data {
                 if let hash = computeFileHash(path: path) {
                     key = "image_hash:" + hash
                 } else {
-                    // Fallback to path if file missing
                     key = "image_path:" + path
                 }
             } else if case .color = item.data {
@@ -272,33 +347,58 @@ actor HistoryRepository {
         var deletedCount = 0
         
         for (_, group) in uniqueGroups where group.count > 1 {
-            // Sort: Pinned first, then Newest first
-            let sorted = group.sorted { (a, b) -> Bool in
-                if a.isPinned != b.isPinned {
-                    return a.isPinned
-                }
-                return a.createdAt > b.createdAt
-            }
+            // Sort by createdAt descending so keeper is the newest copy
+            let sorted = group.sorted { $0.createdAt > $1.createdAt }
             
-            // Keep the first one
-            guard let keeper = sorted.first else { continue }
-            
-            // The rest are to be deleted
+            guard var keeper = sorted.first else { continue }
             let duplicates = sorted.dropFirst()
             
-            // Aggregate copy counts
-            let totalCopies = group.reduce(0) { $0 + $1.copyCount }
-            // If the keeper has fewer copies than total, update it (approximated)
-            if keeper.copyCount < totalCopies {
-                 // We can update the keeper's copy count in DB
-                 updateCopyCount(id: keeper.id, count: totalCopies)
+            // Merge metadata from any older duplicate entries into keeper
+            if keeper.customMetadata == nil {
+                keeper.customMetadata = group.compactMap { $0.customMetadata }.first
             }
+            if !keeper.isPinned && group.contains(where: { $0.isPinned }) {
+                keeper.isPinned = true
+            }
+            if keeper.sourceApp == nil {
+                keeper = ClipboardItem(
+                    id: keeper.id,
+                    data: keeper.data,
+                    createdAt: keeper.createdAt,
+                    sourceApp: group.compactMap { $0.sourceApp }.first,
+                    isPinned: keeper.isPinned,
+                    copyCount: keeper.copyCount,
+                    customMetadata: keeper.customMetadata
+                )
+            }
+            if case .text(let text, let url) = keeper.data, url == nil {
+                let firstURL = group.compactMap { item -> String? in
+                    if case .text(_, let u) = item.data { return u }
+                    return nil
+                }.first
+                if let oldURL = firstURL {
+                    keeper = ClipboardItem(
+                        id: keeper.id,
+                        data: .text(text, sourceURL: oldURL),
+                        createdAt: keeper.createdAt,
+                        sourceApp: keeper.sourceApp,
+                        isPinned: keeper.isPinned,
+                        copyCount: keeper.copyCount,
+                        customMetadata: keeper.customMetadata
+                    )
+                }
+            }
+            
+            let totalCopies = group.reduce(0) { $0 + $1.copyCount }
+            keeper.copyCount = totalCopies
+            
+            // Persist merged keeper to database
+            insert(keeper)
             
             for dup in duplicates {
                 delete(id: dup.id)
                 deletedCount += 1
                 
-                // If it was an image with a DIFFERENT path than keeper, delete the file (orphan)
                 if case .image(let dupPath) = dup.data,
                    case .image(let keeperPath) = keeper.data,
                    dupPath != keeperPath {
@@ -307,8 +407,8 @@ actor HistoryRepository {
             }
         }
         
-        print("[HistoryRepository] Deduplication complete. Removed \(deletedCount) items.")
-        defaults.set(true, forKey: "has_deduplicated_history_v1")
+        print("[HistoryRepository] Deduplication complete. Merged and removed \(deletedCount) duplicate items.")
+        UserDefaults.standard.set(true, forKey: "has_deduplicated_history_v1")
     }
     
     private func computeFileHash(path: String) -> String? {

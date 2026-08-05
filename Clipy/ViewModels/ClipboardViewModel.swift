@@ -55,8 +55,9 @@ class ClipboardViewModel: ObservableObject {
     init(settings: AppSettings) {
         self.pasteboardService = PasteboardService(settings: settings)
         
-        // Initial Load
+        // Initial Load and Deduplication
         Task {
+            await historyRepository.deduplicate()
             let items = await historyRepository.load()
             self.history = items
         }
@@ -69,8 +70,6 @@ class ClipboardViewModel: ObservableObject {
                 self?.addOrUpdateItem(newItem)
             }
             .store(in: &cancellables)
-            
-
             
         // Setup Search Subscription
         $searchText
@@ -103,9 +102,6 @@ class ClipboardViewModel: ObservableObject {
             
             var filtered: [ClipboardItem]
             if query.isEmpty {
-                // When empty, we show the loaded "current history" (which is limited by SQL load anyway)
-                // But for consistency we should probably reload or just use what we have.
-                // For now, let's keep the existing behaviour: show what's loaded.
                 filtered = await self.history
             } else {
                 // Perform SQL FTS Search
@@ -124,8 +120,9 @@ class ClipboardViewModel: ObservableObject {
                 }
             }
             
+            let finalFiltered = filtered
             await MainActor.run {
-                self.filteredHistory = filtered
+                self.filteredHistory = finalFiltered
                 self.ensureSelection()
             }
         }
@@ -136,37 +133,76 @@ class ClipboardViewModel: ObservableObject {
     }
     
     func addOrUpdateItem(_ newItem: ClipboardItem) {
-        // Check for existing item to increment count
-        var existingCount = 1
-        // Use normalizationKey to deduplicate across different source URLs/Apps if content is same
-        if let existing = history.first(where: { $0.data.normalizationKey == newItem.data.normalizationKey }) {
-            existingCount = existing.copyCount + 1
-
-            // If duplicate exists, we should delete the OLD one from Repository so it doesn't persist
-            // The new one will be inserted below
-            let oldID = existing.id
-            Task {
-                await historyRepository.delete(id: oldID)
-            }
-        }
-        
-        // Remove existing duplicate logic (InMemory) using normalizationKey
-        history.removeAll { $0.data.normalizationKey == newItem.data.normalizationKey }
-        
-        var finalItem = newItem
-        finalItem.copyCount = existingCount
-        
-        history.insert(finalItem, at: 0)
-        
-        // Select the new item (Sticky selection behavior: move to top only on new add)
-        selectedItemID = finalItem.id
-        
-        // Notify UI to scroll to top (specific action)
-        newItemAdded.send()
-        
-        // Persist to SQL
         Task {
-            await historyRepository.insert(finalItem)
+            // 1. Find existing duplicates in DB
+            let dbDuplicates = await historyRepository.findDuplicates(of: newItem)
+            
+            await MainActor.run {
+                // 2. Combine with memory duplicates
+                let memDuplicates = history.filter { $0.id != newItem.id && $0.data.normalizationKey == newItem.data.normalizationKey }
+                var allDuplicates: [ClipboardItem] = []
+                var seenIDs = Set<UUID>()
+                for dup in (memDuplicates + dbDuplicates) {
+                    if !seenIDs.contains(dup.id) {
+                        seenIDs.insert(dup.id)
+                        allDuplicates.append(dup)
+                    }
+                }
+                
+                // 3. Merge metadata from all earlier duplicate entries into the new item
+                var finalItem = newItem
+                var totalCopyCount = finalItem.copyCount
+                
+                for older in allDuplicates {
+                    if finalItem.customMetadata == nil, let oldMeta = older.customMetadata {
+                        finalItem.customMetadata = oldMeta
+                    }
+                    if older.isPinned {
+                        finalItem.isPinned = true
+                    }
+                    if finalItem.sourceApp == nil, let oldApp = older.sourceApp {
+                        finalItem.sourceApp = oldApp
+                    }
+                    if case .text(let text, let newURL) = finalItem.data,
+                       newURL == nil,
+                       case .text(_, let oldURL) = older.data,
+                       oldURL != nil {
+                        finalItem = ClipboardItem(
+                            id: finalItem.id,
+                            data: .text(text, sourceURL: oldURL),
+                            createdAt: finalItem.createdAt,
+                            sourceApp: finalItem.sourceApp,
+                            isPinned: finalItem.isPinned,
+                            copyCount: finalItem.copyCount,
+                            customMetadata: finalItem.customMetadata
+                        )
+                    }
+                    totalCopyCount += older.copyCount
+                }
+                
+                finalItem.copyCount = totalCopyCount
+                
+                // 4. Remove older duplicate entries from history array and database
+                for older in allDuplicates {
+                    let oldID = older.id
+                    history.removeAll { $0.id == oldID }
+                    Task {
+                        await historyRepository.delete(id: oldID)
+                    }
+                }
+                
+                history.removeAll { $0.data.normalizationKey == newItem.data.normalizationKey }
+                
+                // 5. Insert merged item at top of history
+                history.insert(finalItem, at: 0)
+                selectedItemID = finalItem.id
+                newItemAdded.send()
+                
+                // 6. Persist merged item to DB
+                Task {
+                    await historyRepository.insert(finalItem)
+                }
+            }
         }
     }
     
@@ -233,6 +269,10 @@ class ClipboardViewModel: ObservableObject {
         var item = history[index]
         item.customMetadata = metadata
         history[index] = item
+        Task { await historyRepository.insert(item) }
+        if !searchText.isEmpty {
+            applyFilter()
+        }
     }
     
     // MARK: - Presentation Logic

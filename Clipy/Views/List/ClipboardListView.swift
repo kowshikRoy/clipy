@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ClipboardListView: View {
     @ObservedObject var viewModel: ClipboardViewModel
+    @ObservedObject var permissionMonitor: PermissionMonitor
     let onPaste: () -> Void
     
     var body: some View {
@@ -20,7 +21,7 @@ struct ClipboardListView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.luminaTextSecondary)
-                        TextField("Search...", text: $viewModel.searchText)
+                        TextField("Search history, #tag, app...", text: $viewModel.searchText)
                             .textFieldStyle(.plain)
                             .font(.custom("Roboto", size: 14))
                             .fontWeight(.medium)
@@ -50,6 +51,41 @@ struct ClipboardListView: View {
             .padding(16)
             .background(Color.obsidianSurface.opacity(0.5))
             .zIndex(2)
+            
+            if !permissionMonitor.isTrusted {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.yellow)
+                        .font(.system(size: 11))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Accessibility Permission Needed")
+                            .font(.custom("Roboto", size: 11))
+                            .fontWeight(.semibold)
+                            .foregroundColor(.luminaTextPrimary)
+                        Text("Stale macOS cache after update. Click Fix to reset & re-prompt.")
+                            .font(.custom("Roboto", size: 10))
+                            .foregroundColor(.luminaTextSecondary)
+                    }
+                    Spacer()
+                    Button("Fix Cache") {
+                        permissionMonitor.resetAndRequestPermission()
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .buttonStyle(AppButtonStyle())
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.yellow.opacity(0.12))
+                .overlay(
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color.yellow.opacity(0.3)),
+                    alignment: .bottom
+                )
+                .zIndex(2)
+            }
             
             // Pinned Section (Fixed)
             if !viewModel.pinnedItems.isEmpty {

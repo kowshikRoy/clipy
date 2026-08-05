@@ -33,7 +33,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 // MARK: - List View (Left)
-                ClipboardListView(viewModel: clipboardViewModel, onPaste: pasteToApp)
+                ClipboardListView(viewModel: clipboardViewModel, permissionMonitor: permissionMonitor, onPaste: pasteToApp)
                     .frame(width: 320)
                     .background(Color.obsidianBackground.opacity(0.6))
                 
@@ -102,14 +102,15 @@ struct ContentView: View {
             clipboardViewModel.resetToDefault()
         }
         .alert("Accessibility Permission Needed", isPresented: $showPermissionAlert) {
-            Button("Open Settings") {
+            Button("Reset Cache & Open Settings") {
+                permissionMonitor.resetAndRequestPermission()
                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
                     NSWorkspace.shared.open(url)
                 }
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Clipy needs accessibility permissions using AppleScript to paste directly into other applications.\n\nPlease enable Clipy in System Settings > Privacy & Security > Accessibility.\n\nNote: You may need to restart Clipy after granting permissions.")
+            Text("Clipy needs Accessibility permission to simulate Cmd+V and paste automatically.\n\n⚠️ WHY TOGGLING OFF/ON FAILED:\nWhen you rebuild an ad-hoc signed app, macOS stores stale binary cdhashes in TCC. Toggling the checkbox in Settings only toggled the old hash.\n\nClicking 'Reset Cache & Open Settings' above clears the stale cache automatically so macOS prompts cleanly for this new build.\n\n(We have already copied your selection to the clipboard so you can press Cmd+V manually!)")
         }
         .onExitCommand {
             NSApplication.shared.hide(nil)
@@ -137,18 +138,19 @@ struct ContentView: View {
         }
         
         // Check permissions via monitor
-        // Force a check just in case, though it polls
         permissionMonitor.checkPermission()
         
+        // ALWAYS copy to pasteboard first so the user's selection is available immediately!
+        clipboardViewModel.copyToPasteboard(item: item)
+        print("[Debug] Copied item to pasteboard")
+        
         if !permissionMonitor.isTrusted {
-            print("[Debug] showing permission alert")
+            print("[Debug] showing permission alert (fallback: copied to pasteboard)")
+            // Hide Clipy so the user can immediately press Cmd+V in their app!
+            NSApplication.shared.hide(nil)
             showPermissionAlert = true
             return
         }
-        
-        // 1. Copy to pasteboard
-        clipboardViewModel.copyToPasteboard(item: item)
-        print("[Debug] Copied item to pasteboard")
         
         // 2. Hide Clipy (Return focus to previous app implicitly)
         NSApplication.shared.hide(nil)

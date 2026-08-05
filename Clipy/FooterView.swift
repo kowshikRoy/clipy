@@ -17,6 +17,26 @@ struct FooterView: View {
     
     @State private var showActionsMenu = false
 
+    private var versionString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        
+        let buildDate: Date
+        if let execPath = Bundle.main.executablePath,
+           let attributes = try? FileManager.default.attributesOfItem(atPath: execPath),
+           let modDate = attributes[.modificationDate] as? Date {
+            buildDate = modDate
+        } else if let bundlePath = Bundle.main.resourcePath,
+                  let attributes = try? FileManager.default.attributesOfItem(atPath: bundlePath),
+                  let modDate = attributes[.modificationDate] as? Date {
+            buildDate = modDate
+        } else {
+            buildDate = Date()
+        }
+        
+        return "v\(formatter.string(from: buildDate))"
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Left: Label
@@ -26,7 +46,10 @@ struct FooterView: View {
                 Text("Clipy")
                     .font(.custom("Roboto", size: 13))
                     .foregroundColor(.luminaTextSecondary)
-                
+                Text(versionString)
+                    .font(.system(size: 11))
+                    .foregroundColor(.luminaTextSecondary.opacity(0.6))
+
                 if !permissionMonitor.isTrusted {
                     Button(action: {
                         // Open Accessibility Settings directly

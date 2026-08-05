@@ -14,7 +14,8 @@ struct LuminaRow: View, Equatable {
     
     static func == (lhs: LuminaRow, rhs: LuminaRow) -> Bool {
         return lhs.item.id == rhs.item.id &&
-               lhs.isSelected == rhs.isSelected
+               lhs.isSelected == rhs.isSelected &&
+               lhs.item.customMetadata == rhs.item.customMetadata
     }
     
     var body: some View {
@@ -39,6 +40,21 @@ struct LuminaRow: View, Equatable {
                 .truncationMode(.tail)
                 
             Spacer() // Force left alignment
+            
+            if let metadata = item.customMetadata, !metadata.isEmpty {
+                HStack(spacing: 3) {
+                    Image(systemName: "tag.fill")
+                        .font(.system(size: 9))
+                    Text(metadata)
+                        .font(.custom("Roboto", size: 10))
+                        .lineLimit(1)
+                }
+                .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary.opacity(0.85))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.white.opacity(isSelected ? 0.2 : 0.1))
+                .cornerRadius(4)
+            }
         }
         .padding(.horizontal, 6) // Tighter inner padding to reduce right space
         .padding(.vertical, 8)

@@ -38,4 +38,25 @@ class PermissionMonitor: ObservableObject {
             }
         }
     }
+
+    func requestPermissionPrompt() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let currentStatus = AXIsProcessTrustedWithOptions(options)
+        DispatchQueue.main.async {
+            self.isTrusted = currentStatus
+        }
+    }
+
+    func resetAndRequestPermission() {
+        print("[PermissionMonitor] Resetting TCC Accessibility records for \(Bundle.main.bundleIdentifier ?? "com.matrixcode.Clipy")...")
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+        task.arguments = ["reset", "Accessibility", Bundle.main.bundleIdentifier ?? "com.matrixcode.Clipy"]
+        try? task.run()
+        task.waitUntilExit()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.requestPermissionPrompt()
+        }
+    }
 }
