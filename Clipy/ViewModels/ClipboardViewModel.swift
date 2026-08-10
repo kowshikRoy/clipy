@@ -45,12 +45,14 @@ class ClipboardViewModel: ObservableObject {
     let newItemAdded = PassthroughSubject<Void, Never>()
     
     var selectedItem: ClipboardItem? {
-        history.first { $0.id == selectedItemID }
+        guard let selectedItemID else { return nil }
+        return filteredHistory.first { $0.id == selectedItemID } ?? history.first { $0.id == selectedItemID }
     }
     
     private let historyRepository = HistoryRepository()
     private let pasteboardService: PasteboardService
     private var cancellables = Set<AnyCancellable>()
+    private var searchTask: Task<Void, Never>?
     
     init(settings: AppSettings) {
         self.pasteboardService = PasteboardService(settings: settings)
@@ -99,19 +101,22 @@ class ClipboardViewModel: ObservableObject {
     }
     
     private func applyFilter() {
+        searchTask?.cancel()
         let query = searchText
         let currentFilter = filterType
         
-        Task.detached(priority: .userInitiated) { [weak self] in
+        searchTask = Task { [weak self] in
             guard let self = self else { return }
             
             var filtered: [ClipboardItem]
             if query.isEmpty {
-                filtered = await self.history
+                filtered = self.history
             } else {
                 // Perform SQL FTS Search
-                 filtered = await self.historyRepository.search(query: query)
+                filtered = await self.historyRepository.search(query: query)
             }
+            
+            if Task.isCancelled { return }
             
             // Apply Type Filter
             if currentFilter != .all {
@@ -125,11 +130,10 @@ class ClipboardViewModel: ObservableObject {
                 }
             }
             
-            let finalFiltered = filtered
-            await MainActor.run {
-                self.filteredHistory = finalFiltered
-                self.ensureSelection()
-            }
+            if Task.isCancelled { return }
+            
+            self.filteredHistory = filtered
+            self.ensureSelection()
         }
     }
     
@@ -220,12 +224,28 @@ class ClipboardViewModel: ObservableObject {
     }
     
     func togglePin(for itemID: UUID) {
-        guard let index = history.firstIndex(where: { $0.id == itemID }) else { return }
-        history[index].isPinned.toggle()
+        var updatedItem: ClipboardItem?
+        if let index = history.firstIndex(where: { $0.id == itemID }) {
+            history[index].isPinned.toggle()
+            updatedItem = history[index]
+        }
+        if let index = filteredHistory.firstIndex(where: { $0.id == itemID }) {
+            if history.firstIndex(where: { $0.id == itemID }) == nil {
+                filteredHistory[index].isPinned.toggle()
+                updatedItem = filteredHistory[index]
+            } else if let updatedItem {
+                filteredHistory[index] = updatedItem
+            }
+            recalculateDerivedData()
+        }
+        if let updatedItem {
+            Task { await historyRepository.insert(updatedItem) }
+        }
     }
     
     func deleteItem(id: UUID) {
-        if let item = history.first(where: { $0.id == id }) {
+        let itemToDelete = filteredHistory.first(where: { $0.id == id }) ?? history.first(where: { $0.id == id })
+        if let item = itemToDelete {
             if case .image(let filename) = item.data {
                 Task { await historyRepository.deleteImage(filename) }
             }
@@ -233,6 +253,7 @@ class ClipboardViewModel: ObservableObject {
         }
         
         history.removeAll { $0.id == id }
+        filteredHistory.removeAll { $0.id == id }
         if selectedItemID == id {
             selectedItemID = nil
             ensureSelection()
@@ -240,41 +261,81 @@ class ClipboardViewModel: ObservableObject {
     }
     
     func deleteAll() {
-        for item in history {
+        var allItems = history
+        for item in filteredHistory where !allItems.contains(where: { $0.id == item.id }) {
+            allItems.append(item)
+        }
+        for item in allItems {
             if case .image(let filename) = item.data {
                 Task { await historyRepository.deleteImage(filename) }
             }
         }
         Task { await historyRepository.deleteAll() }
         history.removeAll()
+        filteredHistory.removeAll()
         selectedItemID = nil
     }
     
     func updateItem(id: UUID, newText: String) {
-        guard let index = history.firstIndex(where: { $0.id == id }) else { return }
-        var item = history[index]
-        if case .text(_, let sourceURL) = item.data {
-             item = ClipboardItem(
-                id: item.id,
-                data: .text(newText, sourceURL: sourceURL),
-                createdAt: item.createdAt,
-                sourceApp: item.sourceApp,
-                isPinned: item.isPinned,
-                copyCount: item.copyCount,
-                customMetadata: item.customMetadata
-            )
-            
-            history[index] = item
-            Task { await historyRepository.insert(item) }
+        let trimmedNewText = newText.trimmingLineWhitespaces()
+        guard !trimmedNewText.isEmpty else { return }
+        var updatedItem: ClipboardItem?
+        if let index = history.firstIndex(where: { $0.id == id }) {
+            var item = history[index]
+            if case .text(_, let sourceURL) = item.data {
+                item = ClipboardItem(
+                    id: item.id,
+                    data: .text(trimmedNewText, sourceURL: sourceURL),
+                    createdAt: item.createdAt,
+                    sourceApp: item.sourceApp,
+                    isPinned: item.isPinned,
+                    copyCount: item.copyCount,
+                    customMetadata: item.customMetadata
+                )
+                history[index] = item
+                updatedItem = item
+            }
+        }
+        if let index = filteredHistory.firstIndex(where: { $0.id == id }) {
+            var item = filteredHistory[index]
+            if case .text(_, let sourceURL) = item.data {
+                item = ClipboardItem(
+                    id: item.id,
+                    data: .text(trimmedNewText, sourceURL: sourceURL),
+                    createdAt: item.createdAt,
+                    sourceApp: item.sourceApp,
+                    isPinned: item.isPinned,
+                    copyCount: item.copyCount,
+                    customMetadata: item.customMetadata
+                )
+                filteredHistory[index] = item
+                updatedItem = item
+            }
+            recalculateDerivedData()
+        }
+        if let updatedItem {
+            Task { await historyRepository.insert(updatedItem) }
         }
     }
     
     func updateItemMetadata(id: UUID, metadata: String?) {
-        guard let index = history.firstIndex(where: { $0.id == id }) else { return }
-        var item = history[index]
-        item.customMetadata = metadata
-        history[index] = item
-        Task { await historyRepository.insert(item) }
+        var updatedItem: ClipboardItem?
+        if let index = history.firstIndex(where: { $0.id == id }) {
+            var item = history[index]
+            item.customMetadata = metadata
+            history[index] = item
+            updatedItem = item
+        }
+        if let index = filteredHistory.firstIndex(where: { $0.id == id }) {
+            var item = filteredHistory[index]
+            item.customMetadata = metadata
+            filteredHistory[index] = item
+            updatedItem = item
+            recalculateDerivedData()
+        }
+        if let updatedItem {
+            Task { await historyRepository.insert(updatedItem) }
+        }
         if !searchText.isEmpty {
             applyFilter()
         }
@@ -412,7 +473,7 @@ class ClipboardViewModel: ObservableObject {
             return
         }
         
-        if let first = history.first {
+        if let first = visualHistory.first ?? history.first {
             selectedItemID = first.id
         } else {
             selectedItemID = nil
@@ -424,7 +485,7 @@ class ClipboardViewModel: ObservableObject {
             return
         }
 
-        if let firstItem = filteredHistory.first {
+        if let firstItem = visualHistory.first ?? filteredHistory.first {
             selectedItemID = firstItem.id
         } else {
             selectedItemID = nil

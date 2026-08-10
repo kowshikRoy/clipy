@@ -38,3 +38,35 @@ extension NSColor {
         self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
     }
 }
+
+extension String {
+    /// Trims leading and trailing empty/whitespace-only lines, and trims whitespace
+    /// on the beginning line and ending line.
+    func trimmingLineWhitespaces() -> String {
+        let normalized = self.replacingOccurrences(of: "\r\n", with: "\n")
+                             .replacingOccurrences(of: "\r", with: "\n")
+        var lines = normalized.components(separatedBy: "\n")
+        
+        // Remove empty or whitespace-only lines from the beginning
+        while let first = lines.first, first.trimmingCharacters(in: .whitespaces).isEmpty {
+            lines.removeFirst()
+        }
+        
+        // Remove empty or whitespace-only lines from the end
+        while let last = lines.last, last.trimmingCharacters(in: .whitespaces).isEmpty {
+            lines.removeLast()
+        }
+        
+        guard !lines.isEmpty else { return "" }
+        
+        // Trim leading whitespace on the first line
+        lines[0] = lines[0].trimmingCharacters(in: .whitespaces)
+        
+        // Trim trailing whitespace on the last line
+        if let lastIndex = lines.indices.last {
+            lines[lastIndex] = lines[lastIndex].trimmingCharacters(in: .whitespaces)
+        }
+        
+        return lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}

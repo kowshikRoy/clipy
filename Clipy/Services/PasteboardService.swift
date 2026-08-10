@@ -101,7 +101,7 @@ class PasteboardService: ObservableObject {
     
     @MainActor
     private func handleText(_ text: String) {
-        let trimmedString = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedString = text.trimmingLineWhitespaces()
         
         guard !trimmedString.isEmpty else { return }
         

@@ -18,6 +18,17 @@ struct LuminaRow: View, Equatable {
                lhs.item.customMetadata == rhs.item.customMetadata
     }
     
+    private var previewText: String {
+        let lines = item.textRepresentation.components(separatedBy: .newlines)
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return item.textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     var body: some View {
         HStack(spacing: 12) {
             // Show thumbnail for images
@@ -32,7 +43,7 @@ struct LuminaRow: View, Equatable {
                     .frame(width: 20, height: 20)
             }
             
-            Text(item.textRepresentation)
+            Text(previewText)
                 .font(.custom("Roboto", size: 13))
                 .fontWeight(.regular)
                 .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)

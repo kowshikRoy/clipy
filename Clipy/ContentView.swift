@@ -94,7 +94,6 @@ struct ContentView: View {
             clipboardViewModel.startMonitoring()
             clipboardViewModel.ensureSelection()
         }
-        .onChange(of: clipboardViewModel.searchText) { _, _ in clipboardViewModel.ensureSelection() }
         .onAppear {
             clipboardViewModel.resetToDefault()
         }
