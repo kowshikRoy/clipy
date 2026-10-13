@@ -42,7 +42,7 @@ struct ClipboardListView: View {
                 // Filter Picker
                 Picker("Filter", selection: $viewModel.filterType) {
                     ForEach(ClipboardViewModel.FilterType.allCases) { type in
-                        Text(type.rawValue).tag(type)
+                        Text(LocalizedStringKey(type.rawValue)).tag(type)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -58,20 +58,17 @@ struct ClipboardListView: View {
                         .foregroundColor(.yellow)
                         .font(.system(size: 11))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Accessibility Permission Needed")
+                        Text("Enable Auto-Paste")
                             .font(.custom("Roboto", size: 11))
                             .fontWeight(.semibold)
                             .foregroundColor(.luminaTextPrimary)
-                        Text("Stale macOS cache after update. Click Fix to reset & re-prompt.")
+                        Text("Allow Clipy in Accessibility Settings to paste directly.")
                             .font(.custom("Roboto", size: 10))
                             .foregroundColor(.luminaTextSecondary)
                     }
                     Spacer()
-                    Button("Fix Cache") {
-                        permissionMonitor.resetAndRequestPermission()
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                            NSWorkspace.shared.open(url)
-                        }
+                    Button("Open Settings") {
+                        permissionMonitor.openAccessibilitySettings()
                     }
                     .buttonStyle(AppButtonStyle())
                 }
@@ -120,7 +117,7 @@ struct ClipboardListView: View {
                     LazyVStack(spacing: 0) {
                         if viewModel.searchText.isEmpty {
                             ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
-                                Section(header: sectionHeader(title: category.title.uppercased(), icon: category.icon).id(category.title)) {
+                                Section(header: sectionHeader(title: category.title, icon: category.icon).id(category.title)) {
                                     ForEach(items) { item in
                                         LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
                                             .id(item.id)
@@ -172,7 +169,8 @@ struct ClipboardListView: View {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.luminaTextSecondary)
-            Text(title)
+            Text(LocalizedStringKey(title))
+                .textCase(.uppercase)
                 .font(.custom("Roboto", size: 11))
                 .fontWeight(.bold)
                 .foregroundColor(.luminaTextSecondary)

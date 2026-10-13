@@ -123,6 +123,9 @@ actor HistoryRepository {
             OR custom_metadata LIKE ?
             OR source_app LIKE ?
             OR content LIKE ?
+            OR url_title LIKE ?
+            OR url_description LIKE ?
+            OR ocr_text LIKE ?
          ORDER BY created_at DESC LIMIT 500
          """
         
@@ -132,6 +135,9 @@ actor HistoryRepository {
              sqlite3_bind_text(statement, 2, (likeQuery as NSString).utf8String, -1, nil)
              sqlite3_bind_text(statement, 3, (likeQuery as NSString).utf8String, -1, nil)
              sqlite3_bind_text(statement, 4, (likeQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 5, (likeQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 6, (likeQuery as NSString).utf8String, -1, nil)
+             sqlite3_bind_text(statement, 7, (likeQuery as NSString).utf8String, -1, nil)
              
             while sqlite3_step(statement) == SQLITE_ROW {
                 if let item = parseItem(from: statement) {
@@ -181,8 +187,8 @@ actor HistoryRepository {
     func insert(_ item: ClipboardItem) {
         let sql = """
         INSERT OR REPLACE INTO clipboard_items 
-        (id, type, content, source_url, created_at, source_app, is_pinned, copy_count, custom_metadata) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        (id, type, content, source_url, created_at, source_app, is_pinned, copy_count, custom_metadata, url_title, url_description, ocr_text) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """
         
         var statement: OpaquePointer?
@@ -233,9 +239,61 @@ actor HistoryRepository {
                  sqlite3_bind_null(statement, 9)
             }
             
+            if let urlTitle = item.urlTitle {
+                sqlite3_bind_text(statement, 10, (urlTitle as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 10)
+            }
+            
+            if let urlDesc = item.urlDescription {
+                sqlite3_bind_text(statement, 11, (urlDesc as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 11)
+            }
+            
+            if let ocr = item.ocrText {
+                sqlite3_bind_text(statement, 12, (ocr as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 12)
+            }
+            
             if sqlite3_step(statement) != SQLITE_DONE {
                 print("Error inserting item")
             }
+        }
+        sqlite3_finalize(statement)
+    }
+    
+    func updateEnrichment(id: UUID, urlTitle: String?, urlDescription: String?, ocrText: String?) {
+        let sql = """
+        UPDATE clipboard_items 
+        SET url_title = COALESCE(?, url_title),
+            url_description = COALESCE(?, url_description),
+            ocr_text = COALESCE(?, ocr_text)
+        WHERE id = ?;
+        """
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(dbManager.getDB(), sql, -1, &statement, nil) == SQLITE_OK {
+            if let title = urlTitle {
+                sqlite3_bind_text(statement, 1, (title as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 1)
+            }
+            
+            if let desc = urlDescription {
+                sqlite3_bind_text(statement, 2, (desc as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 2)
+            }
+            
+            if let ocr = ocrText {
+                sqlite3_bind_text(statement, 3, (ocr as NSString).utf8String, -1, nil)
+            } else {
+                sqlite3_bind_null(statement, 3)
+            }
+            
+            sqlite3_bind_text(statement, 4, (id.uuidString as NSString).utf8String, -1, nil)
+            sqlite3_step(statement)
         }
         sqlite3_finalize(statement)
     }
@@ -286,6 +344,22 @@ actor HistoryRepository {
             meta = String(cString: metaStr)
         }
         
+        let colCount = sqlite3_column_count(statement)
+        var urlTitle: String? = nil
+        if colCount > 9, let titleStr = sqlite3_column_text(statement, 9) {
+            urlTitle = String(cString: titleStr)
+        }
+        
+        var urlDescription: String? = nil
+        if colCount > 10, let descStr = sqlite3_column_text(statement, 10) {
+            urlDescription = String(cString: descStr)
+        }
+        
+        var ocrText: String? = nil
+        if colCount > 11, let ocrStr = sqlite3_column_text(statement, 11) {
+            ocrText = String(cString: ocrStr)
+        }
+        
         var data: ClipboardData
         switch type {
         case "text":
@@ -305,7 +379,10 @@ actor HistoryRepository {
             sourceApp: sourceApp,
             isPinned: isPinned,
             copyCount: copyCount,
-            customMetadata: meta
+            customMetadata: meta,
+            urlTitle: urlTitle,
+            urlDescription: urlDescription,
+            ocrText: ocrText
         )
     }
     
@@ -357,19 +434,20 @@ actor HistoryRepository {
             if keeper.customMetadata == nil {
                 keeper.customMetadata = group.compactMap { $0.customMetadata }.first
             }
+            if keeper.urlTitle == nil {
+                keeper.urlTitle = group.compactMap { $0.urlTitle }.first
+            }
+            if keeper.urlDescription == nil {
+                keeper.urlDescription = group.compactMap { $0.urlDescription }.first
+            }
+            if keeper.ocrText == nil {
+                keeper.ocrText = group.compactMap { $0.ocrText }.first
+            }
             if !keeper.isPinned && group.contains(where: { $0.isPinned }) {
                 keeper.isPinned = true
             }
             if keeper.sourceApp == nil {
-                keeper = ClipboardItem(
-                    id: keeper.id,
-                    data: keeper.data,
-                    createdAt: keeper.createdAt,
-                    sourceApp: group.compactMap { $0.sourceApp }.first,
-                    isPinned: keeper.isPinned,
-                    copyCount: keeper.copyCount,
-                    customMetadata: keeper.customMetadata
-                )
+                keeper.sourceApp = group.compactMap { $0.sourceApp }.first
             }
             if case .text(let text, let url) = keeper.data, url == nil {
                 let firstURL = group.compactMap { item -> String? in
@@ -384,7 +462,10 @@ actor HistoryRepository {
                         sourceApp: keeper.sourceApp,
                         isPinned: keeper.isPinned,
                         copyCount: keeper.copyCount,
-                        customMetadata: keeper.customMetadata
+                        customMetadata: keeper.customMetadata,
+                        urlTitle: keeper.urlTitle,
+                        urlDescription: keeper.urlDescription,
+                        ocrText: keeper.ocrText
                     )
                 }
             }

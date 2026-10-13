@@ -1,9 +1,9 @@
-
 import SwiftUI
 import Combine
 import Carbon
 import AppKit
 import UniformTypeIdentifiers
+import ServiceManagement
 
 // MARK: - App Settings Model
 
@@ -51,6 +51,53 @@ class AppSettings: ObservableObject {
         }
     }
     
+    @Published var fetchURLMetadata: Bool {
+        didSet {
+            UserDefaults.standard.set(fetchURLMetadata, forKey: "fetchURLMetadata")
+        }
+    }
+    
+    @Published var launchAtLogin: Bool {
+        didSet {
+            UserDefaults.standard.set(launchAtLogin, forKey: "launchAtLogin")
+            do {
+                if launchAtLogin {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                print("[Settings] Failed to update Launch at Login: \(error)")
+            }
+        }
+    }
+    
+    @Published var appLanguage: String {
+        didSet {
+            UserDefaults.standard.set(appLanguage, forKey: "appLanguage")
+        }
+    }
+    
+    var resolvedLocale: Locale {
+        if appLanguage == "system" {
+            return .autoupdatingCurrent
+        }
+        return Locale(identifier: appLanguage)
+    }
+    
+    static let supportedLanguages: [(id: String, name: String)] = [
+        ("system", "System Default"),
+        ("en", "English"),
+        ("es", "Español"),
+        ("fr", "Français"),
+        ("de", "Deutsch"),
+        ("nl", "Nederlands"),
+        ("ja", "日本語"),
+        ("zh-Hans", "简体中文"),
+        ("ko", "한국어"),
+        ("bn", "বাংলা")
+    ]
+    
     init() {
         self.blockedApps = AppSettings.load(key: "blockedApps")
         self.blockedHosts = AppSettings.load(key: "blockedHosts")
@@ -63,14 +110,22 @@ class AppSettings: ObservableObject {
         self.retentionDays = UserDefaults.standard.object(forKey: "retentionDays") as? Int ?? 0
         self.autoCleanupNoise = UserDefaults.standard.object(forKey: "autoCleanupNoise") as? Bool ?? true
         self.autoCleanupLargeTransient = UserDefaults.standard.object(forKey: "autoCleanupLargeTransient") as? Bool ?? true
+        self.fetchURLMetadata = UserDefaults.standard.object(forKey: "fetchURLMetadata") as? Bool ?? true
+        self.launchAtLogin = (SMAppService.mainApp.status == .enabled) || (UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool ?? false)
+        self.appLanguage = UserDefaults.standard.string(forKey: "appLanguage") ?? "system"
     }
     
     func isBlocked(app: String?, host: String?) -> Bool {
         if let app = app, blockedApps.contains(app) {
             return true
         }
-        if let host = host, blockedHosts.contains(host) {
-            return true
+        if let host = host?.lowercased() {
+            for blocked in blockedHosts {
+                let lowerBlocked = blocked.lowercased()
+                if host == lowerBlocked || host.hasSuffix("." + lowerBlocked) {
+                    return true
+                }
+            }
         }
         return false
     }
@@ -157,9 +212,10 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.obsidianBackground.opacity(0.6)) // Translucent background to show VisualEffectView
         }
-        .frame(width: 650, height: 400) // Adjusted frame
+        .frame(width: 650, height: 420) // Adjusted frame
         .background(VisualEffectView().ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .environment(\.locale, settings.resolvedLocale)
     }
 }
 
@@ -180,7 +236,7 @@ struct SidebarButton: View {
                     .foregroundColor(isActive ? .luminaTextPrimary : .luminaTextSecondary)
                     .frame(width: 20, height: 20)
                 
-                Text(tab.rawValue)
+                Text(LocalizedStringKey(tab.rawValue))
                     .font(.custom("Roboto", size: 13))
                     .fontWeight(.regular)
                     .foregroundColor(isActive ? .luminaTextPrimary : .luminaTextSecondary)
@@ -210,7 +266,7 @@ struct GeneralSettingsView: View {
     @ObservedObject var settings: AppSettings
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 20) {
             Text("General")
                 .font(.custom("Roboto", size: 20))
                 .fontWeight(.medium)
@@ -227,9 +283,59 @@ struct GeneralSettingsView: View {
                     manager.registerHotKey(keyCode: UInt32(settings.hotkeyKeyCode), modifiers: UInt32(settings.hotkeyModifiers))
                 }
                 
-                Text("Press this shortuct to toggle Clipy.")
+                Text("Press this shortcut to toggle Clipy.")
                     .font(.custom("Roboto", size: 12))
                     .foregroundColor(.luminaTextSecondary.opacity(0.7))
+            }
+            .padding(20)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
+            
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 16) {
+                    Text("Language")
+                        .font(.custom("Roboto", size: 14))
+                        .foregroundColor(.luminaTextSecondary)
+                    
+                    Spacer()
+                    
+                    Picker("", selection: $settings.appLanguage) {
+                        ForEach(AppSettings.supportedLanguages, id: \.id) { lang in
+                            if lang.id == "system" {
+                                Text("System Default").tag(lang.id)
+                            } else {
+                                Text(lang.name).tag(lang.id)
+                            }
+                        }
+                    }
+                    .frame(width: 180)
+                    .labelsHidden()
+                }
+            }
+            .padding(20)
+            .background(Color.obsidianSurface)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.obsidianBorder, lineWidth: 0.5)
+            )
+            
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Startup & Link Previews")
+                    .font(.custom("Roboto", size: 14))
+                    .foregroundColor(.luminaTextSecondary)
+                
+                Toggle("Launch Clipy automatically at login", isOn: $settings.launchAtLogin)
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextPrimary)
+                
+                Toggle("Fetch webpage title & quick description for copied links", isOn: $settings.fetchURLMetadata)
+                    .font(.custom("Roboto", size: 13))
+                    .foregroundColor(.luminaTextPrimary)
             }
             .padding(20)
             .background(Color.obsidianSurface)

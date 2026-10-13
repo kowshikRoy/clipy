@@ -26,7 +26,7 @@ class PasteboardService: ObservableObject {
         
         monitoringTask = Task {
             while !Task.isCancelled {
-                try await Task.sleep(for: .seconds(1)) // Poll every 1 second
+                try await Task.sleep(for: .milliseconds(300)) // Poll every 300ms
                 
                 let currentChangeCount = NSPasteboard.general.changeCount
                 if currentChangeCount != lastChangeCount {

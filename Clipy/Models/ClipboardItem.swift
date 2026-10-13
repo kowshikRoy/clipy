@@ -36,6 +36,9 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     var isPinned: Bool = false
     var copyCount: Int = 1
     var customMetadata: String? = nil
+    var urlTitle: String? = nil
+    var urlDescription: String? = nil
+    var ocrText: String? = nil
     
     var textRepresentation: String {
         switch data {
@@ -48,10 +51,52 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         }
     }
     
+    /// If the copied text itself is a standalone HTTP/HTTPS URL, returns it.
+    var directURL: URL? {
+        guard case .text(let string, _) = data else { return nil }
+        return Self.parseValidWebURL(string)
+    }
+    
+    /// Returns either the direct URL (if the clip is a URL) or the source webpage URL (if copied from a browser).
+    var detectedURL: URL? {
+        if let direct = directURL {
+            return direct
+        }
+        if case .text(_, let sourceURL) = data, let src = sourceURL {
+            return Self.parseValidWebURL(src)
+        }
+        return nil
+    }
+    
+    var isDirectURL: Bool {
+        directURL != nil
+    }
+    
+    var hasLink: Bool {
+        detectedURL != nil
+    }
+    
+    static func parseValidWebURL(_ raw: String) -> URL? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+              let components = URLComponents(string: trimmed),
+              let scheme = components.scheme?.lowercased(),
+              (scheme == "http" || scheme == "https"),
+              let host = components.host?.lowercased(),
+              !host.isEmpty else {
+            return nil
+        }
+        // Valid if host is a domain/IP (contains '.') OR has a non-empty path on an intranet host (e.g. http://go/foo)
+        let hasValidHost = host.contains(".") || (components.path.count > 1 && components.path.hasPrefix("/"))
+        guard hasValidHost else { return nil }
+        return components.url
+    }
+    
     // MARK: - Lifecycle & Codable
     
     enum CodingKeys: String, CodingKey {
-        case id, data, createdAt, sourceApp, isPinned, copyCount, customMetadata
+        case id, data, createdAt, sourceApp, isPinned, copyCount, customMetadata, urlTitle, urlDescription, ocrText
     }
     
     init(id: UUID = UUID(), 
@@ -60,7 +105,10 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
          sourceApp: String?, 
          isPinned: Bool = false, 
          copyCount: Int = 1, 
-         customMetadata: String? = nil) {
+         customMetadata: String? = nil,
+         urlTitle: String? = nil,
+         urlDescription: String? = nil,
+         ocrText: String? = nil) {
         self.id = id
         self.data = data
         self.createdAt = createdAt
@@ -68,6 +116,9 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         self.isPinned = isPinned
         self.copyCount = copyCount
         self.customMetadata = customMetadata
+        self.urlTitle = urlTitle
+        self.urlDescription = urlDescription
+        self.ocrText = ocrText
     }
     
     init(from decoder: Decoder) throws {
@@ -79,6 +130,9 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         self.isPinned = try container.decode(Bool.self, forKey: .isPinned)
         self.copyCount = try container.decode(Int.self, forKey: .copyCount)
         self.customMetadata = try container.decodeIfPresent(String.self, forKey: .customMetadata)
+        self.urlTitle = try container.decodeIfPresent(String.self, forKey: .urlTitle)
+        self.urlDescription = try container.decodeIfPresent(String.self, forKey: .urlDescription)
+        self.ocrText = try container.decodeIfPresent(String.self, forKey: .ocrText)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -90,6 +144,9 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         try container.encode(isPinned, forKey: .isPinned)
         try container.encode(copyCount, forKey: .copyCount)
         try container.encode(customMetadata, forKey: .customMetadata)
+        try container.encodeIfPresent(urlTitle, forKey: .urlTitle)
+        try container.encodeIfPresent(urlDescription, forKey: .urlDescription)
+        try container.encodeIfPresent(ocrText, forKey: .ocrText)
     }
     
     func matches(_ query: String) -> Bool {
@@ -116,6 +173,13 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
             
             // 2. Metadata Match (Source App)
             if let app = sourceApp?.lowercased(), app.contains(termString) { return true }
+            
+            // 3. URL Metadata Match
+            if let title = urlTitle?.lowercased(), title.contains(termString) { return true }
+            if let desc = urlDescription?.lowercased(), desc.contains(termString) { return true }
+            
+            // 4. OCR Text Match
+            if let ocr = ocrText?.lowercased(), ocr.contains(termString) { return true }
             
             return false
         }

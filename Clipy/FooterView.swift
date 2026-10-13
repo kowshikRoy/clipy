@@ -12,8 +12,11 @@ struct FooterView: View {
     let onAddMetadata: () -> Void
     let onDelete: () -> Void
     let onDeleteAll: () -> Void
-    let onDeleteMetadata: () -> Void // New callback
-    let hasMetadata: Bool // New state check
+    let onDeleteMetadata: () -> Void
+    let hasMetadata: Bool
+    var isPinned: Bool = false
+    var hasURL: Bool = false
+    var onOpenURL: (() -> Void)? = nil
     
     @State private var showActionsMenu = false
 
@@ -52,17 +55,14 @@ struct FooterView: View {
 
                 if !permissionMonitor.isTrusted {
                     Button(action: {
-                        // Open Accessibility Settings directly
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                            NSWorkspace.shared.open(url)
-                        }
+                        permissionMonitor.openAccessibilitySettings()
                     }) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.yellow)
                             .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
-                    .help("Missing Accessibility Permissions. Click to fix.")
+                    .help("Enable Accessibility access for Auto-Paste")
                 }
             }
             
@@ -125,6 +125,8 @@ struct FooterView: View {
                     ActionsMenu(
                         targetAppName: focusManager.previousApp?.localizedName ?? "App",
                         hasMetadata: hasMetadata,
+                        isPinned: isPinned,
+                        hasURL: hasURL,
                         onPasteToApp: {
                             showActionsMenu = false
                             onPasteToApp()
@@ -132,6 +134,10 @@ struct FooterView: View {
                         onCopyToClipboard: {
                             showActionsMenu = false
                             onCopyToClipboard()
+                        },
+                        onOpenURL: {
+                            showActionsMenu = false
+                            onOpenURL?()
                         },
                         onEdit: {
                             showActionsMenu = false
@@ -176,8 +182,11 @@ struct FooterView: View {
 struct ActionsMenu: View {
     let targetAppName: String
     let hasMetadata: Bool
+    var isPinned: Bool = false
+    var hasURL: Bool = false
     let onPasteToApp: () -> Void
     let onCopyToClipboard: () -> Void
+    var onOpenURL: (() -> Void)? = nil
     let onEdit: () -> Void
     let onPin: () -> Void
     let onAddMetadata: () -> Void
@@ -188,32 +197,45 @@ struct ActionsMenu: View {
     @State private var selectedIndex: Int = 0
     @FocusState private var isFocused: Bool
 
-    // Using a simpler struct without ID since we will iterate by index or make ID computed/stable if needed.
-    // However, iterating by index is safest for computed lists.
     struct MenuItem {
         let icon: String
-        let text: String
+        let text: LocalizedStringKey
+        let isDeleteEntry: Bool
         let shortcut: String
         var color: Color = .primary
         let action: () -> Void
+        
+        init(icon: String, text: LocalizedStringKey, isDeleteEntry: Bool = false, shortcut: String, color: Color = .primary, action: @escaping () -> Void) {
+            self.icon = icon
+            self.text = text
+            self.isDeleteEntry = isDeleteEntry
+            self.shortcut = shortcut
+            self.color = color
+            self.action = action
+        }
     }
 
     var items: [MenuItem] {
         var list = [
             MenuItem(icon: "arrow.turn.up.left", text: "Paste to \(targetAppName)", shortcut: "↵", action: onPasteToApp),
-            MenuItem(icon: "doc.on.doc", text: "Copy to Clipboard", shortcut: "⌘↵", action: onCopyToClipboard),
-            MenuItem(icon: "pencil", text: "Edit entry", shortcut: "", action: onEdit),
-            MenuItem(icon: "pin", text: "Pin entry", shortcut: "", action: onPin)
+            MenuItem(icon: "doc.on.doc", text: "Copy to Clipboard", shortcut: "⌘↵", action: onCopyToClipboard)
         ]
+        
+        if hasURL, let onOpenURL = onOpenURL {
+            list.append(MenuItem(icon: "safari", text: "Open Link in Browser", shortcut: "⌘O", action: onOpenURL))
+        }
+        
+        list.append(MenuItem(icon: "pencil", text: "Edit entry", shortcut: "⌘E", action: onEdit))
+        list.append(MenuItem(icon: isPinned ? "pin.slash" : "pin", text: isPinned ? "Unpin entry" : "Pin entry", shortcut: "⌘P", action: onPin))
 
         if hasMetadata {
-            list.append(MenuItem(icon: "tag", text: "Edit Metadata", shortcut: "", action: onAddMetadata))
+            list.append(MenuItem(icon: "tag", text: "Edit Metadata", shortcut: "⌘M", action: onAddMetadata))
             list.append(MenuItem(icon: "tag.slash", text: "Delete Metadata", shortcut: "", action: onDeleteMetadata))
         } else {
-            list.append(MenuItem(icon: "tag", text: "Add Metadata", shortcut: "", action: onAddMetadata))
+            list.append(MenuItem(icon: "tag", text: "Add Metadata", shortcut: "⌘M", action: onAddMetadata))
         }
 
-        list.append(MenuItem(icon: "trash", text: "Delete entry", shortcut: "⌫", action: onDelete))
+        list.append(MenuItem(icon: "trash", text: "Delete entry", isDeleteEntry: true, shortcut: "⌫", action: onDelete))
         list.append(MenuItem(icon: "trash.slash", text: "Delete all entries", shortcut: "", color: .red, action: onDeleteAll))
 
         return list
@@ -221,11 +243,10 @@ struct ActionsMenu: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Using indices to ensure stability. The list is small enough.
             ForEach(items.indices, id: \.self) { index in
                 let item = items[index]
                 Group {
-                    if index == 2 {
+                    if index == (hasURL ? 3 : 2) {
                         Divider().background(Color.gray.opacity(0.3))
                     }
                     if index == items.count - 1 {
@@ -252,13 +273,6 @@ struct ActionsMenu: View {
         .frame(width: 250)
         .background(Color(nsColor: NSColor.windowBackgroundColor))
         .onAppear {
-            // Monitor for local events (Up/Down/Return) while the menu is open
-            // We use a local monitor so we don't interfere with other apps, but we catch events before they hit the view hierarchy if needed,
-            // or we can use a simpler approach: just listening on the window.
-            // Since this is a popover, it has its own window usually.
-            
-            // However, SwiftUI Popovers can be tricky. Let's try adding the monitor to the local event loop.
-            
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 switch event.keyCode {
                 case 126: // Up Arrow
@@ -273,12 +287,11 @@ struct ActionsMenu: View {
                     }
                     return nil // Consume event
                 case 51: // Delete / Backspace
-                    if let deleteItem = items.first(where: { $0.text == "Delete entry" }) {
+                    if let deleteItem = items.first(where: { $0.isDeleteEntry }) {
                         deleteItem.action()
                     }
                     return nil // Consume event
                 case 53: // Esc
-                     // Let it pass through to close the popover (default behavior)
                     return event
                 default:
                     return event
@@ -298,7 +311,7 @@ struct ActionsMenu: View {
 
 struct MenuButton: View {
     let icon: String
-    let text: String
+    let text: LocalizedStringKey
     let shortcut: String
     var color: Color = .primary
     let isSelected: Bool

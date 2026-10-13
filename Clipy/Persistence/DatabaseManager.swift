@@ -53,20 +53,48 @@ class DatabaseManager {
             source_app TEXT,
             is_pinned INTEGER DEFAULT 0,
             copy_count INTEGER DEFAULT 1,
-            custom_metadata TEXT
+            custom_metadata TEXT,
+            url_title TEXT,
+            url_description TEXT,
+            ocr_text TEXT
         );
         """
         
         execute(sql: createTableString)
         
-        // Check if existing FTS5 table has custom_metadata column
+        // Non-destructively add new columns to existing clipboard_items table if missing
+        var existingColumns = Set<String>()
+        var pragmaStmt: OpaquePointer?
+        if sqlite3_prepare_v2(db, "PRAGMA table_info(clipboard_items);", -1, &pragmaStmt, nil) == SQLITE_OK {
+            while sqlite3_step(pragmaStmt) == SQLITE_ROW {
+                if let colNameC = sqlite3_column_text(pragmaStmt, 1) {
+                    existingColumns.insert(String(cString: colNameC))
+                }
+            }
+        }
+        sqlite3_finalize(pragmaStmt)
+        
+        if !existingColumns.contains("url_title") {
+            execute(sql: "ALTER TABLE clipboard_items ADD COLUMN url_title TEXT;")
+        }
+        if !existingColumns.contains("url_description") {
+            execute(sql: "ALTER TABLE clipboard_items ADD COLUMN url_description TEXT;")
+        }
+        if !existingColumns.contains("ocr_text") {
+            execute(sql: "ALTER TABLE clipboard_items ADD COLUMN ocr_text TEXT;")
+        }
+        
+        // Check if existing FTS5 table has custom_metadata, url_title, url_description, ocr_text columns
         var needsRebuild = false
         var statement: OpaquePointer?
         if sqlite3_prepare_v2(db, "SELECT sql FROM sqlite_master WHERE type='table' AND name='clipboard_search'", -1, &statement, nil) == SQLITE_OK {
             if sqlite3_step(statement) == SQLITE_ROW {
                 if let sqlC = sqlite3_column_text(statement, 0) {
                     let sqlStr = String(cString: sqlC)
-                    if !sqlStr.contains("custom_metadata") {
+                    if !sqlStr.contains("custom_metadata") ||
+                       !sqlStr.contains("url_title") ||
+                       !sqlStr.contains("url_description") ||
+                       !sqlStr.contains("ocr_text") {
                         needsRebuild = true
                     }
                 }
@@ -90,6 +118,9 @@ class DatabaseManager {
             content,
             source_app,
             custom_metadata,
+            url_title,
+            url_description,
+            ocr_text,
             content='clipboard_items',
             content_rowid='rowid'
         );
@@ -100,18 +131,22 @@ class DatabaseManager {
         let triggers = [
             """
             CREATE TRIGGER IF NOT EXISTS clipboard_ai AFTER INSERT ON clipboard_items BEGIN
-              INSERT INTO clipboard_search(rowid, content, source_app, custom_metadata) VALUES (new.rowid, new.content, new.source_app, new.custom_metadata);
+              INSERT INTO clipboard_search(rowid, content, source_app, custom_metadata, url_title, url_description, ocr_text)
+              VALUES (new.rowid, new.content, new.source_app, new.custom_metadata, new.url_title, new.url_description, new.ocr_text);
             END;
             """,
             """
             CREATE TRIGGER IF NOT EXISTS clipboard_ad AFTER DELETE ON clipboard_items BEGIN
-              INSERT INTO clipboard_search(clipboard_search, rowid, content, source_app, custom_metadata) VALUES('delete', old.rowid, old.content, old.source_app, old.custom_metadata);
+              INSERT INTO clipboard_search(clipboard_search, rowid, content, source_app, custom_metadata, url_title, url_description, ocr_text)
+              VALUES('delete', old.rowid, old.content, old.source_app, old.custom_metadata, old.url_title, old.url_description, old.ocr_text);
             END;
             """,
             """
             CREATE TRIGGER IF NOT EXISTS clipboard_au AFTER UPDATE ON clipboard_items BEGIN
-              INSERT INTO clipboard_search(clipboard_search, rowid, content, source_app, custom_metadata) VALUES('delete', old.rowid, old.content, old.source_app, old.custom_metadata);
-              INSERT INTO clipboard_search(rowid, content, source_app, custom_metadata) VALUES (new.rowid, new.content, new.source_app, new.custom_metadata);
+              INSERT INTO clipboard_search(clipboard_search, rowid, content, source_app, custom_metadata, url_title, url_description, ocr_text)
+              VALUES('delete', old.rowid, old.content, old.source_app, old.custom_metadata, old.url_title, old.url_description, old.ocr_text);
+              INSERT INTO clipboard_search(rowid, content, source_app, custom_metadata, url_title, url_description, ocr_text)
+              VALUES (new.rowid, new.content, new.source_app, new.custom_metadata, new.url_title, new.url_description, new.ocr_text);
             END;
             """
         ]

@@ -51,8 +51,13 @@ struct ContentView: View {
                             item: selectedItem,
                             isEditing: $clipboardViewModel.isEditing,
                             editingText: $clipboardViewModel.editingText,
+                            isEnriching: clipboardViewModel.enrichingItemIDs.contains(selectedItem.id),
                             onSave: saveEdit,
-                            onCancel: cancelEdit
+                            onCancel: cancelEdit,
+                            onOpenURL: openSelectedURL,
+                            onCopyOCRText: { text in
+                                clipboardViewModel.copyPlainText(text)
+                            }
                         )
                     } else {
                         emptyState
@@ -80,10 +85,18 @@ struct ContentView: View {
                 onDelete: deleteEntry,
                 onDeleteAll: deleteAllEntries,
                 onDeleteMetadata: deleteMetadata,
-                hasMetadata: clipboardViewModel.selectedItem?.customMetadata != nil
+                hasMetadata: clipboardViewModel.selectedItem?.customMetadata != nil,
+                isPinned: clipboardViewModel.selectedItem?.isPinned ?? false,
+                hasURL: clipboardViewModel.selectedItem?.hasLink ?? false,
+                onOpenURL: openSelectedURL
             )
         }
-        .background(VisualEffectView().ignoresSafeArea())
+        .background(
+            ZStack {
+                VisualEffectView().ignoresSafeArea()
+                shortcutButtons
+            }
+        )
         .ignoresSafeArea()
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -100,20 +113,43 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
             clipboardViewModel.resetToDefault()
         }
-        .alert("Accessibility Permission Needed", isPresented: $showPermissionAlert) {
-            Button("Reset Cache & Open Settings") {
-                permissionMonitor.resetAndRequestPermission()
-                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                    NSWorkspace.shared.open(url)
-                }
+        .alert("Enable Auto-Paste", isPresented: $showPermissionAlert) {
+            Button("Open System Settings") {
+                permissionMonitor.openAccessibilitySettings()
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Clipy needs Accessibility permission to simulate Cmd+V and paste automatically.\n\n⚠️ WHY TOGGLING OFF/ON FAILED:\nWhen you rebuild an ad-hoc signed app, macOS stores stale binary cdhashes in TCC. Toggling the checkbox in Settings only toggled the old hash.\n\nClicking 'Reset Cache & Open Settings' above clears the stale cache automatically so macOS prompts cleanly for this new build.\n\n(We have already copied your selection to the clipboard so you can press Cmd+V manually!)")
+            Text("To paste directly into your active app, please enable Clipy in System Settings → Privacy & Security → Accessibility.\n\nYour selection has already been copied to the clipboard, so you can press ⌘V right now.")
         }
         .onExitCommand {
             NSApplication.shared.hide(nil)
         }
+    }
+
+    @ViewBuilder
+    private var shortcutButtons: some View {
+        Group {
+            Button("", action: copyToClipboard)
+                .keyboardShortcut(.return, modifiers: [.command])
+            Button("", action: pinEntry)
+                .keyboardShortcut("p", modifiers: [.command])
+            Button("", action: editEntry)
+                .keyboardShortcut("e", modifiers: [.command])
+            Button("", action: openSelectedURL)
+                .keyboardShortcut("o", modifiers: [.command])
+            Button("", action: addMetadata)
+                .keyboardShortcut("m", modifiers: [.command])
+            
+            ForEach(1...9, id: \.self) { index in
+                Button("") {
+                    pasteItemAtIndex(index - 1)
+                }
+                .keyboardShortcut(KeyEquivalent(Character("\(index)")), modifiers: [.command])
+            }
+        }
+        .opacity(0)
+        .frame(width: 0, height: 0)
+        .allowsHitTesting(false)
     }
 
     private var emptyState: some View {
@@ -128,6 +164,18 @@ struct ContentView: View {
     }
 
     // MARK: - Actions
+    
+    private func pasteItemAtIndex(_ index: Int) {
+        let items = clipboardViewModel.visualHistory
+        guard index >= 0 && index < items.count else { return }
+        clipboardViewModel.selectedItemID = items[index].id
+        pasteToApp()
+    }
+    
+    private func openSelectedURL() {
+        guard let item = clipboardViewModel.selectedItem else { return }
+        clipboardViewModel.openURL(for: item)
+    }
     
     private func pasteToApp() {
         print("[Debug] pasteToApp called")

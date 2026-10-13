@@ -1,0 +1,1026 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "1 time" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "১ বার" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "1 Mal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "1 vez" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "1 fois" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "1回" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "1회" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "1 keer" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "1 次" } }
+      }
+    },
+    "%lld times" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "%lld বার" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Mal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld veces" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld fois" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%lld回" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%lld회" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "%lld keer" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 次" } }
+      }
+    },
+    "1 Year" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "১ বছর" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "1 Jahr" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "1 año" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "1 an" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "1年間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "1년" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "1 jaar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "1 年" } }
+      }
+    },
+    "30 Days" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "৩০ দিন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "30 Tage" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "30 días" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "30 jours" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "30日間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "30일" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "30 dagen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "30 天" } }
+      }
+    },
+    "60 Days" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "৬০ দিন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "60 Tage" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "60 días" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "60 jours" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "60日間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "60일" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "60 dagen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "60 天" } }
+      }
+    },
+    "90 Days (Default)" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "৯০ দিন (ডিফল্ট)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "90 Tage (Standard)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "90 días (predeterminado)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "90 jours (par défaut)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "90日間（デフォルト）" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "90일 (기본값)" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "90 dagen (standaard)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "90 天（默认）" } }
+      }
+    },
+    "About" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সম্পর্কে" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Über" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Acerca de" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "À propos" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "情報" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "정보" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Over" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关于" } }
+      }
+    },
+    "Actions" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অ্যাকশন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktionen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Acciones" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Actions" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "동작" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Acties" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "操作" } }
+      }
+    },
+    "Add Metadata" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "মেটাডেটা যোগ করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notiz hinzufügen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir metadatos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter une note" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メタデータを追加" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "메타데이터 추가" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Metadata toevoegen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加备注" } }
+      }
+    },
+    "All" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সব" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Alle" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tout" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "すべて" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "전체" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Alles" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "全部" } }
+      }
+    },
+    "Allow Clipy in Accessibility Settings to paste directly." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সরাসরি পেস্ট করতে অ্যাক্সেসিবিলিটি সেটিংসে Clipy অনুমোদন করুন।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Clipy in den Bedienungshilfen erlauben, um direkt einzufügen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permite Clipy en Ajustes de Accesibilidad para pegar directamente." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autorisez Clipy dans Accessibilité pour coller directement." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "直接貼り付けるにはアクセシビリティ設定でClipyを許可してください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "직접 붙여넣으려면 손쉬운 사용 설정에서 Clipy를 허용하세요." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Sta Clipy toe in Toegankelijkheid om direct te plakken." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在辅助功能设置中允许 Clipy 以直接粘贴。" } }
+      }
+    },
+    "Application Name" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অ্যাপ্লিকেশনের নাম" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Programmname" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nombre de la aplicación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom de l’application" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アプリケーション名" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "애플리케이션 이름" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Applicatienaam" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用程序名称" } }
+      }
+    },
+    "Auto-clean large transient copies (>30 days old, >1,000 chars)" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "বড় অস্থায়ী কপি স্বয়ংক্রিয়ভাবে মুছুন (>৩০ দিন পুরনো, >১,০০০ অক্ষর)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Große temporäre Einträge automatisch bereinigen (>30 Tage, >1.000 Zeichen)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Limpiar copias grandes antiguas (>30 días, >1.000 caracteres)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nettoyer les grands textes temporaires (>30 jours, >1 000 caract.)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "大きな一時コピーを自動 정리（30日以上経過・1,000文字超）" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "대용량 임시 항목 자동 정리 (30일 경과, 1,000자 초과)" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Grote tijdelijke items automatisch wissen (>30 dagen, >1.000 tekens)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动清理大段临时复制内容（超过 30 天且大于 1,000 字符）" } }
+      }
+    },
+    "Auto-clean noise & whitespace snippets (>30 days old)" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অপ্রয়োজনীয় ও ফাঁকা স্নিপেট স্বয়ংক্রিয়ভাবে মুছুন (>৩০ দিন পুরনো)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Leerzeichen- & Kurz-Snippets automatisch bereinigen (>30 Tage)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Limpiar fragmentos vacíos o ruido (>30 días)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nettoyer les extraits vides ou courts (>30 jours)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "空白・不要な断片を自動削除（30日以上経過）" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "공백 및 불필요한 짧은 조각 자동 정리 (30일 경과)" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Korte/lege fragmenten automatisch wissen (>30 dagen)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动清理空白和简短无用片段（超过 30 天）" } }
+      }
+    },
+    "Automatically remove unpinned, untagged items that might not ever be needed. (Pinned and tagged items are permanently preserved)." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আনপিন ও ট্যাগবিহীন পুরনো আইটেম স্বয়ংক্রিয়ভাবে মুছে ফেলুন। (পিন ও ট্যাগ করা আইটেম স্থায়ীভাবে সংরক্ষিত থাকে)।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht angeheftete Elemente ohne Notiz automatisch entfernen. (Angeheftete und markierte Elemente bleiben dauerhaft erhalten)." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elimina automáticamente los elementos no fijados ni etiquetados. (Los elementos fijados o con nota se conservan siempre)." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer automatiquement les éléments non épinglés et sans note. (Les éléments épinglés ou annotés sont conservés)." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ピン留めやタグのない古い項目を自動削除します（ピン留め・タグ付き項目は永続的に保持されます）。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "고정되지 않고 태그가 없는 오래된 항목을 자동 삭제합니다. (고정 및 태그된 항목은 영구 보관됩니다)." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Verwijder automatisch niet-vastgezette items zonder label. (Vastgezette items blijven altijd bewaard)." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动移除未置顶且无标签的旧项目（置顶和带备注的项目将永久保留）。" } }
+      }
+    },
+    "Blocked Applications" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ব্লক করা অ্যাপ্লিকেশন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Blockierte Programme" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicaciones bloqueadas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Applications bloquées" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ブロック中のアプリ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "차단된 애플리케이션" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Geblokkeerde apps" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已屏蔽的应用程序" } }
+      }
+    },
+    "Blocked Websites" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ব্লক করা ওয়েবসাইট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Blockierte Websites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sitios web bloqueados" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sites web bloqués" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ブロック中のウェブサイト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "차단된 웹사이트" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Geblokkeerde websites" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已屏蔽的网站" } }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "বাতিল" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Abbrechen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cancelar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Annuler" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャンセル" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "취소" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Annuleer" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
+      }
+    },
+    "Cleaning..." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "পরিষ্কার করা হচ্ছে..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bereinige..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Limpiando..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nettoyage..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "整理中..." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "정리 중..." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Opschonen..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "清理中..." } }
+      }
+    },
+    "Color" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "রঙ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Farbe" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Color" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Couleur" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カラー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "색상" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Kleur" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "颜色" } }
+      }
+    },
+    "Copied" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "কপি হয়েছে" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kopiert" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copié" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "コピー回数" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "복사 횟수" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Gekopieerd" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制次数" } }
+      }
+    },
+    "Copy Text" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "টেক্সট কপি করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Text kopieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar texto" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier le texte" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "テキストをコピー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "텍스트 복사" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Kopieer tekst" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制文本" } }
+      }
+    },
+    "Copy to Clipboard" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ক্লিপবোর্ডে কপি করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "In Zwischenablage kopieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar al portapapeles" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier dans le presse-papiers" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボードにコピー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립보드에 복사" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Kopieer naar klembord" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制到剪贴板" } }
+      }
+    },
+    "Database Deduplication" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ডাটাবেস ডুপ্লিকেট দূরীকরণ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datenbank-Deduplizierung" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Deduplicación de base de datos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Déduplication de la base" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "データベースの重複排除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "데이터베이스 중복 제거" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Database ontdubbelen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "数据库去重" } }
+      }
+    },
+    "Date" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "তারিখ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datum" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fecha" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Date" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日時" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "날짜" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Datum" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日期" } }
+      }
+    },
+    "Deduplicate History" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ডুপ্লিকেট ইতিহাস মুছুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verlauf deduplizieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Deduplicar historial" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dédupliquer l’historique" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴の重複を削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "중복 기록 제거" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Geschiedenis ontdubbelen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "清理重复历史" } }
+      }
+    },
+    "Delete Metadata" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "মেটাডেটা মুছুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notiz löschen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar metadatos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer la note" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メタデータを削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "메타데이터 삭제" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Metadata verwijderen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除备注" } }
+      }
+    },
+    "Delete all entries" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সব এন্ট্রি মুছুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Alle Einträge löschen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar todas las entradas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tout supprimer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "すべての履歴を削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "모든 항목 삭제" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Alle items verwijderen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除所有记录" } }
+      }
+    },
+    "Delete entry" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এন্ট্রি মুছুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eintrag löschen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar entrada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer l’entrée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "項目を削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "항목 삭제" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Item verwijderen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除此记录" } }
+      }
+    },
+    "Designed for speed and simplicity." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "গতি এবং সহজতার জন্য তৈরি।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Entwickelt für Geschwindigkeit und Einfachheit." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Diseñado para la velocidad y la simplicidad." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Conçu pour la vitesse et la simplicité." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スピードとシンプルさを追求した設計。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "빠른 속도와 간결함을 위해 설계되었습니다." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Ontworpen voor snelheid en eenvoud." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "专为极致速度与简洁体验而设计。" } }
+      }
+    },
+    "Edit Metadata" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "মেটাডেটা সম্পাদনা করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notiz bearbeiten" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editar metadatos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modifier la note" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メタデータを編集" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "메타데이터 편집" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Metadata bewerken" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑备注" } }
+      }
+    },
+    "Edit entry" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এন্ট্রি সম্পাদনা করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eintrag bearbeiten" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editar entrada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modifier l’entrée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "項目を編集" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "항목 편집" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Item bewerken" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑内容" } }
+      }
+    },
+    "Enable Auto-Paste" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অটো-পেস্ট চালু করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Autom. Einfügen aktivieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activar pegado automático" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Activer le collage auto" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "自動貼り付けを有効化" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "자동 붙여넣기 활성화" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Automatisch plakken inschakelen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用自动粘贴" } }
+      }
+    },
+    "Enter metadata..." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "মেটাডেটা লিখুন..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notiz eingeben..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escribe una nota..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisir une note..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグやメモを入力..." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "태그 또는 메모 입력..." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Voer metadata in..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入标签或备注..." } }
+      }
+    },
+    "Fetch webpage title & quick description for copied links" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "কপি করা লিঙ্কের জন্য ওয়েবপেজের শিরোনাম ও সংক্ষিপ্ত বিবরণ আনুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Seitentitel & Kurzbeschreibung für kopierte Links abrufen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Obtener título y descripción rápida de los enlaces copiados" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Récupérer le titre et la description des liens copiés" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "コピーしたリンクのWebタイトルと概要を取得する" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "복사한 링크의 웹페이지 제목 및 요약 설명 가져오기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Haal paginatitel en beschrijving op voor gekopieerde links" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动获取复制链接的网页标题与简介" } }
+      }
+    },
+    "Forever" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "চিরকাল" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Für immer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Para siempre" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Toujours" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "無期限" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영구 보관" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Altijd" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "永久保留" } }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সাধারণ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Allgemein" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "General" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Général" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "一般" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일반" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Algemeen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通用" } }
+      }
+    },
+    "Global Shortcut" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "গ্লোবাল শর্টকাট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Globales Tastenkürzel" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atajo global" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Raccourci global" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "グローバルショートカット" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "전역 단축키" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Globale sneltoets" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "全局快捷键" } }
+      }
+    },
+    "History Deletion & Retention Policy" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ইতিহাস মুছে ফেলা ও সংরক্ষণ নীতি" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufbewahrungs- & Löschrichtlinie" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Política de retención y limpieza" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Politique de conservation de l’historique" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴の保持と削除ポリシー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기록 보관 및 삭제 정책" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bewaar- en verwijderbeleid" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "历史记录保留与清理策略" } }
+      }
+    },
+    "Image" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ছবি" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bild" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Imagen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Image" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画像" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이미지" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Afbeelding" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "图片" } }
+      }
+    },
+    "Keep History For:" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ইতিহাস সংরক্ষণের সময়:" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verlauf behalten für:" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservar historial por:" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Conserver l’historique :" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴の保持期間:" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기록 보관 기간:" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bewaar geschiedenis:" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保留历史记录时长：" } }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ভাষা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sprache" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Idioma" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Langue" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "언어" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Taal" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
+      }
+    },
+    "Launch Clipy automatically at login" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "লগইনের সময় স্বয়ংক্রিয়ভাবে Clipy চালু করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Clipy bei der Anmeldung automatisch starten" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar Clipy automáticamente al iniciar sesión" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lancer Clipy automatiquement à l’ouverture de session" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログイン時にClipyを自動的に起動する" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "로그인 시 Clipy 자동 실행" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Start Clipy automatisch bij het inloggen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录时自动启动 Clipy" } }
+      }
+    },
+    "Link" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "লিঙ্ক" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Link" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enlace" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lien" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "リンク" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "링크" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Link" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "链接" } }
+      }
+    },
+    "Links" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "লিঙ্কসমূহ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Links" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enlaces" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Liens" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "リンク" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "링크" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Links" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "链接" } }
+      }
+    },
+    "Maintenance" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "রক্ষণাবেক্ষণ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wartung" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantenimiento" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Maintenance" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メンテナンス" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "유지 관리" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Onderhoud" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "维护" } }
+      }
+    },
+    "Maintenance & Retention" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "রক্ষণাবেক্ষণ ও সংরক্ষণ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wartung & Aufbewahrung" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantenimiento y retención" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Maintenance et conservation" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メンテナンスと保持設定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "유지 관리 및 보관" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Onderhoud & Bewaring" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "维护与保留策略" } }
+      }
+    },
+    "Manage what creates a history entry. Content from these sources will be ignored." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "কোন উৎস থেকে ইতিহাস তৈরি হবে তা নিয়ন্ত্রণ করুন। এই উৎসগুলোর কন্টেন্ট উপেক্ষা করা হবে।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verwalte, was im Verlauf gespeichert wird. Inhalte dieser Quellen werden ignoriert." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Administra qué fuentes crean historial. El contenido de estas fuentes se ignorará." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérez les sources enregistrées. Le contenu de ces sources sera ignoré." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴に保存する対象を管理します。以下のソースからのコピーは無視されます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기록을 생성할 대상을 관리합니다. 아래 출처의 콘텐츠는 무시됩니다." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Beheer welke bronnen worden opgeslagen. Inhoud van deze bronnen wordt genegeerd." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "管理记录来源。来自以下应用或网站的内容将被忽略。" } }
+      }
+    },
+    "Metadata" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "মেটাডেটা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Metadaten" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Metadatos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Métadonnées" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メタデータ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "메타데이터" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Metadata" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "元数据" } }
+      }
+    },
+    "No clips found" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "কোনো ক্লিপ পাওয়া যায়নি" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine Einträge gefunden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontraron clips" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun élément trouvé" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップが見つかりません" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립을 찾을 수 없음" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Geen clips gevonden" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到剪贴板记录" } }
+      }
+    },
+    "Note" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "নোট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notiz" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nota" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Note" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "メモ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "메모" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Notitie" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "备注" } }
+      }
+    },
+    "Open" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "খুলুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Öffnen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "열기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Open" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开" } }
+      }
+    },
+    "Open Link in Browser" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ব্রাউজারে লিঙ্ক খুলুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Link im Browser öffnen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir enlace en el navegador" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir le lien dans le navigateur" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ブラウザでリンクを開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "브라우저에서 링크 열기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Open link in browser" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在浏览器中打开链接" } }
+      }
+    },
+    "Open Settings" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সেটিংস খুলুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einstellungen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir Ajustes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定を開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정 열기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Instellingen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开设置" } }
+      }
+    },
+    "Open System Settings" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সিস্টেম সেটিংস খুলুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Systemeinstellungen öffnen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir Ajustes del Sistema" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les Réglages Système" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム設定を開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "시스템 설정 열기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Open Systeeminstellingen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开系统设置" } }
+      }
+    },
+    "Paste to %@" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "%@-এ পেস্ট করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "In %@ einfügen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pegar en %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Coller dans %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ に貼り付け" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "%@에 붙여넣기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Plak in %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "粘贴到 %@" } }
+      }
+    },
+    "Pin entry" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এন্ট্রি পিন করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eintrag anheften" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fijar entrada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épingler l’entrée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ピン留めする" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "항목 고정" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Item vastzetten" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "置顶此记录" } }
+      }
+    },
+    "Pinned" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "পিন করা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Angeheftet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fijados" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épinglés" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ピン留め" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "고정됨" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Vastgezet" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已置顶" } }
+      }
+    },
+    "Press this shortcut to toggle Clipy." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "Clipy দেখাতে বা লুকাতে এই শর্টকাটটি চাপুন।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Drücke dieses Kürzel, um Clipy ein- oder auszublenden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pulsa este atajo para mostrar u ocultar Clipy." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Appuyez sur ce raccourci pour afficher ou masquer Clipy." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このショートカットを押してClipyの表示・非表示を切り替えます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 단축키를 눌러 Clipy를 열거나 닫습니다." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Druk op deze sneltoets om Clipy te tonen of verbergen." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "按下此快捷键可随时呼出或隐藏 Clipy。" } }
+      }
+    },
+    "Privacy" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "গোপনীয়তা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Datenschutz" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Privacidad" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Confidentialité" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プライバシー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "개인정보 보호" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Privacy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私" } }
+      }
+    },
+    "Quit" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "বন্ধ করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Beenden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Salir" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Quitter" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "終了" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "종료" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Stop" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出" } }
+      }
+    },
+    "Recognized Text (OCR)" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "শনাক্ত করা টেক্সট (OCR)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Erkannter Text (OCR)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Texto reconocido (OCR)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Texte reconnu (OCR)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認識されたテキスト (OCR)" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "인식된 텍스트 (OCR)" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Herkende tekst (OCR)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "识别出的文字 (OCR)" } }
+      }
+    },
+    "Remove duplicate clipboard history items and refresh the search index." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ডুপ্লিকেট ক্লিপবোর্ড আইটেম মুছে ফেলুন এবং সার্চ ইনডেক্স রিফ্রেশ করুন।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Doppelte Verlaufseinträge entfernen und den Suchindex aktualisieren." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elimina elementos duplicados del historial y actualiza el índice de búsqueda." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer les doublons de l’historique et actualiser l’index de recherche." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "重複するクリップボード履歴を統合し、検索インデックスを更新します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "중복된 클립보드 기록을 제거하고 검색 인덱스를 새로 고칩니다." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Verwijder dubbele klemborditems en vernieuw de zoekindex." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "合并重复的剪贴板历史记录并刷新搜索索引。" } }
+      }
+    },
+    "Rest" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "বাকি সব" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Älter" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Anteriores" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Plus ancien" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "それ以前" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이전 기록" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Ouder" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更早" } }
+      }
+    },
+    "Run Deletion Policy Now" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এখনই ক্লিনআপ চালান" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Richtlinie jetzt ausführen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutar limpieza ahora" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécuter le nettoyage" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除ポリシーを今すぐ実行" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "지금 정리 정책 실행" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Beleid nu uitvoeren" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "立即执行清理策略" } }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সংরক্ষণ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Speichern" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "저장" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bewaar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
+      }
+    },
+    "Scanning..." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "স্ক্যান করা হচ্ছে..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Prüfe..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escaneando..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Analyse..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スキャン中..." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스캔 중..." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Scannen..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "扫描中..." } }
+      }
+    },
+    "Search history, #tag, app..." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ইতিহাস, #ট্যাগ বা অ্যাপ খুঁজুন..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verlauf, #Tag, App durchsuchen..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar historial, #etiqueta, app..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher, #tag, application..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴、#タグ、アプリ名で検索..." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기록, #태그, 앱 검색..." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Zoek geschiedenis, #tag, app..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索历史记录、#标签、应用..." } }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সেটিংস" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einstellungen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "설정" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Instellingen" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置" } }
+      }
+    },
+    "Show Clipy" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "Clipy দেখান" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Clipy anzeigen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar Clipy" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher Clipy" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Clipyを表示" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Clipy 보기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Toon Clipy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示 Clipy" } }
+      }
+    },
+    "Size" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আকার" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Größe" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tamaño" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Taille" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "サイズ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "크기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Grootte" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "大小" } }
+      }
+    },
+    "Source" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "উৎস" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quelle" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Origen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Source" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "コピー元" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "출처" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bron" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "来源" } }
+      }
+    },
+    "Startup & Link Previews" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "স্টার্টআপ ও লিঙ্ক প্রিভিউ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Start & Link-Vorschau" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Inicio y vista previa de enlaces" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Démarrage et aperçu des liens" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "起動とリンクプレビュー" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "시작 및 링크 미리보기" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Opstarten & Linkvoorbeelden" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启动与链接预览" } }
+      }
+    },
+    "System Default" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "সিস্টেম ডিফল্ট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Systemstandard" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Predeterminado del sistema" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Par défaut du système" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム標準" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "시스템 기본값" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Systeemstandaard" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统" } }
+      }
+    },
+    "Text" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "টেক্সট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Text" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Texto" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Texte" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "テキスト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "텍스트" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Tekst" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "文本" } }
+      }
+    },
+    "This Month" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এই মাস" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diesen Monat" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Este mes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce mois-ci" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今月" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이번 달" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Deze maand" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本月" } }
+      }
+    },
+    "This Week" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এই সপ্তাহ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diese Woche" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta semana" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Cette semaine" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今週" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이번 주" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Deze week" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周" } }
+      }
+    },
+    "To paste directly into your active app, please enable Clipy in System Settings → Privacy & Security → Accessibility.\n\nYour selection has already been copied to the clipboard, so you can press ⌘V right now." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আপনার সক্রিয় অ্যাপে সরাসরি পেস্ট করতে, অনুগ্রহ করে System Settings → Privacy & Security → Accessibility-এ Clipy চালু করুন।\n\nআপনার নির্বাচন ইতিমধ্যেই ক্লিপবোর্ডে কপি করা হয়েছে, তাই আপনি এখনই ⌘V চাপতে পারেন।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Um direkt in die aktive App einzufügen, aktiviere Clipy bitte unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen.\n\nDeine Auswahl wurde bereits kopiert – du kannst sofort ⌘V drücken." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Para pegar directamente en tu aplicación activa, habilita Clipy en Ajustes del Sistema → Privacidad y seguridad → Accesibilidad.\n\nTu selección ya se ha copiado al portapapeles, así que puedes pulsar ⌘V ahora mismo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pour coller directement dans l’application active, veuillez autoriser Clipy dans Réglages Système → Confidentialité et sécurité → Accessibilité.\n\nVotre sélection est déjà copiée dans le presse-papiers, vous pouvez appuyer sur ⌘V dès maintenant." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクティブなアプリへ直接貼り付けるには、「システム設定」→「プライバシーとセキュリティ」→「アクセシビリティ」でClipyを有効にしてください。\n\n選択した項目はすでにクリップボードにコピーされているため、今すぐ ⌘V で貼り付け可能です。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "활성 앱에 바로 붙여넣으려면 시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용에서 Clipy를 허용해 주세요.\n\n선택한 항목은 이미 클립보드에 복사되었으므로 지금 바로 ⌘V를 눌러 붙여넣을 수 있습니다." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Schakel Clipy in via Systeeminstellingen → Privacy en beveiliging → Toegankelijkheid om direct in je actieve app te plakken.\n\nJe selectie is al naar het klembord gekopieerd, dus je kunt nu direct op ⌘V drukken." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "若要直接粘贴到当前活动应用，请在“系统设置 → 隐私与安全性 → 辅助功能”中启用 Clipy。\n\n所选内容已复制到剪贴板，您现在可以直接按 ⌘V 粘贴。" } }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আজ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Heute" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hoy" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aujourd’hui" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "오늘" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Vandaag" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天" } }
+      }
+    },
+    "Type" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ধরন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Typ" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tipo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Type" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "種類" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "유형" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Type" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "类型" } }
+      }
+    },
+    "Type shortcut..." : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "শর্টকাট চাপুন..." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kürzel drücken..." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pulsa el atajo..." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tapez le raccourci..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "キーを入力..." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "단축키 입력..." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Typ sneltoets..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请按下快捷键..." } }
+      }
+    },
+    "Unpin entry" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আনপিন করুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Loslösen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desfijar entrada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Désépingler" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ピン留めを解除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "고정 해제" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Losmaken" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消置顶" } }
+      }
+    },
+    "Visit Website" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ওয়েবসাইট দেখুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Website besuchen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Visitar sitio web" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Visiter le site web" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウェブサイトを開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "웹사이트 방문" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bezoek website" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "访问网站" } }
+      }
+    },
+    "Website" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "ওয়েবসাইট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Website" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sitio web" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Site web" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Webサイト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "웹사이트" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Website" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "网站" } }
+      }
+    },
+    "Yesterday" : {
+      "localizations" : {
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "গতকাল" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Gestern" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ayer" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Hier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "昨日" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "어제" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Gisteren" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "昨天" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

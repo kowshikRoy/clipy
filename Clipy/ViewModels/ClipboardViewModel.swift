@@ -11,17 +11,22 @@ import AppKit
 
 @MainActor
 class ClipboardViewModel: ObservableObject {
+    private var isApplyingEnrichment = false
+    
     @Published var history: [ClipboardItem] = [] {
         didSet {
             saveHistory()
-            // Trigger filtering when history changes
-            applyFilter() 
+            if !isApplyingEnrichment {
+                // Trigger filtering when history changes
+                applyFilter()
+            }
         }
     }
     
     enum FilterType: String, CaseIterable, Identifiable {
         case all = "All"
         case text = "Text"
+        case links = "Links"
         case image = "Image"
         
         var id: String { rawValue }
@@ -37,9 +42,16 @@ class ClipboardViewModel: ObservableObject {
             recalculateDerivedData()
         }
     }
-    @Published var selectedItemID: ClipboardItem.ID?
+    @Published var selectedItemID: ClipboardItem.ID? {
+        didSet {
+            if let item = selectedItem {
+                enrichItemIfNeeded(item)
+            }
+        }
+    }
     @Published var isEditing: Bool = false
     @Published var editingText: String = ""
+    @Published var enrichingItemIDs: Set<UUID> = []
     
     // Event specific to new items being added
     let newItemAdded = PassthroughSubject<Void, Never>()
@@ -51,22 +63,27 @@ class ClipboardViewModel: ObservableObject {
     
     private let historyRepository = HistoryRepository()
     private let pasteboardService: PasteboardService
+    private let settings: AppSettings
     private var cancellables = Set<AnyCancellable>()
     private var searchTask: Task<Void, Never>?
+    private var attemptedEnrichmentIDs = Set<UUID>()
     
     init(settings: AppSettings) {
+        self.settings = settings
         self.pasteboardService = PasteboardService(settings: settings)
         
-        // Initial Load, Deduplication, and Deletion Policy
+        // Initial Load
         Task {
-            await historyRepository.deduplicate()
-            await historyRepository.executeDeletionPolicy(
-                retentionDays: settings.retentionDays,
-                cleanNoise: settings.autoCleanupNoise,
-                cleanLargeTransient: settings.autoCleanupLargeTransient
-            )
+            if settings.retentionDays > 0 {
+                await historyRepository.executeDeletionPolicy(
+                    retentionDays: settings.retentionDays,
+                    cleanNoise: settings.autoCleanupNoise,
+                    cleanLargeTransient: settings.autoCleanupLargeTransient
+                )
+            }
             let items = await historyRepository.load()
             self.history = items
+            self.enrichRecentItemsInBackground(items: items)
         }
         
         // Bind PasteboardService
@@ -121,11 +138,19 @@ class ClipboardViewModel: ObservableObject {
             // Apply Type Filter
             if currentFilter != .all {
                 filtered = filtered.filter { item in
-                    switch item.data {
-                    case .text, .color:
-                        return currentFilter == .text
+                    switch currentFilter {
+                    case .all:
+                        return true
+                    case .text:
+                        switch item.data {
+                        case .text, .color: return true
+                        case .image: return false
+                        }
+                    case .links:
+                        return item.isDirectURL
                     case .image:
-                        return currentFilter == .image
+                        if case .image = item.data { return true }
+                        return false
                     }
                 }
             }
@@ -166,6 +191,15 @@ class ClipboardViewModel: ObservableObject {
                     if finalItem.customMetadata == nil, let oldMeta = older.customMetadata {
                         finalItem.customMetadata = oldMeta
                     }
+                    if finalItem.urlTitle == nil, let oldTitle = older.urlTitle {
+                        finalItem.urlTitle = oldTitle
+                    }
+                    if finalItem.urlDescription == nil, let oldDesc = older.urlDescription {
+                        finalItem.urlDescription = oldDesc
+                    }
+                    if finalItem.ocrText == nil, let oldOCR = older.ocrText {
+                        finalItem.ocrText = oldOCR
+                    }
                     if older.isPinned {
                         finalItem.isPinned = true
                     }
@@ -183,7 +217,10 @@ class ClipboardViewModel: ObservableObject {
                             sourceApp: finalItem.sourceApp,
                             isPinned: finalItem.isPinned,
                             copyCount: finalItem.copyCount,
-                            customMetadata: finalItem.customMetadata
+                            customMetadata: finalItem.customMetadata,
+                            urlTitle: finalItem.urlTitle,
+                            urlDescription: finalItem.urlDescription,
+                            ocrText: finalItem.ocrText
                         )
                     }
                     totalCopyCount += older.copyCount
@@ -207,12 +244,124 @@ class ClipboardViewModel: ObservableObject {
                 selectedItemID = finalItem.id
                 newItemAdded.send()
                 
-                // 6. Persist merged item to DB
+                // 6. Persist merged item to DB & trigger background enrichment if needed
+                let itemToPersist = finalItem
                 Task {
-                    await historyRepository.insert(finalItem)
+                    await historyRepository.insert(itemToPersist)
+                    await MainActor.run {
+                        self.enrichItemIfNeeded(itemToPersist)
+                    }
                 }
             }
         }
+    }
+    
+    // MARK: - Background URL & OCR Enrichment
+    
+    private func enrichRecentItemsInBackground(items: [ClipboardItem]) {
+        Task {
+            var enrichedCount = 0
+            for item in items {
+                guard enrichedCount < 50 else { break }
+                let needsURL = item.detectedURL != nil && item.urlTitle == nil && item.urlDescription == nil && settings.fetchURLMetadata
+                var needsOCR = false
+                if case .image = item.data, item.ocrText == nil {
+                    needsOCR = true
+                }
+                if needsURL || needsOCR {
+                    enrichedCount += 1
+                    enrichItemIfNeeded(item)
+                    try? await Task.sleep(for: .milliseconds(80))
+                }
+            }
+        }
+    }
+    
+    func enrichItemIfNeeded(_ item: ClipboardItem) {
+        guard !attemptedEnrichmentIDs.contains(item.id) else { return }
+        
+        let targetURL = item.detectedURL
+        let needsURL: Bool = {
+            guard let url = targetURL,
+                  settings.fetchURLMetadata,
+                  item.urlTitle == nil && item.urlDescription == nil else {
+                return false
+            }
+            return !settings.isBlocked(app: item.sourceApp, host: url.host)
+        }()
+        
+        let imageFilename: String? = {
+            if case .image(let filename) = item.data, item.ocrText == nil {
+                return filename
+            }
+            return nil
+        }()
+        
+        guard needsURL || imageFilename != nil else { return }
+        
+        attemptedEnrichmentIDs.insert(item.id)
+        enrichingItemIDs.insert(item.id)
+        let itemID = item.id
+        
+        Task {
+            var fetchedTitle: String? = nil
+            var fetchedDescription: String? = nil
+            var recognizedOCR: String? = nil
+            
+            if needsURL, let url = targetURL {
+                if let metadata = await URLMetadataService.shared.fetchMetadata(for: url) {
+                    fetchedTitle = metadata.title
+                    fetchedDescription = metadata.description
+                }
+            }
+            
+            if let filename = imageFilename {
+                if let ocr = await OCRService.shared.recognizeText(in: filename) {
+                    recognizedOCR = ocr
+                }
+            }
+            
+            await MainActor.run {
+                self.enrichingItemIDs.remove(itemID)
+                
+                guard fetchedTitle != nil || fetchedDescription != nil || recognizedOCR != nil else {
+                    return
+                }
+                
+                self.isApplyingEnrichment = true
+                if let idx = self.history.firstIndex(where: { $0.id == itemID }) {
+                    if let fetchedTitle { self.history[idx].urlTitle = fetchedTitle }
+                    if let fetchedDescription { self.history[idx].urlDescription = fetchedDescription }
+                    if let recognizedOCR { self.history[idx].ocrText = recognizedOCR }
+                }
+                self.isApplyingEnrichment = false
+                
+                if let fIdx = self.filteredHistory.firstIndex(where: { $0.id == itemID }) {
+                    if let fetchedTitle { self.filteredHistory[fIdx].urlTitle = fetchedTitle }
+                    if let fetchedDescription { self.filteredHistory[fIdx].urlDescription = fetchedDescription }
+                    if let recognizedOCR { self.filteredHistory[fIdx].ocrText = recognizedOCR }
+                }
+                
+                Task {
+                    await self.historyRepository.updateEnrichment(
+                        id: itemID,
+                        urlTitle: fetchedTitle,
+                        urlDescription: fetchedDescription,
+                        ocrText: recognizedOCR
+                    )
+                }
+            }
+        }
+    }
+    
+    func openURL(for item: ClipboardItem) {
+        guard let url = item.detectedURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+    
+    func copyPlainText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
     
     func copyToPasteboard(item: ClipboardItem) {
@@ -283,6 +432,7 @@ class ClipboardViewModel: ObservableObject {
         if let index = history.firstIndex(where: { $0.id == id }) {
             var item = history[index]
             if case .text(_, let sourceURL) = item.data {
+                let textChanged = item.textRepresentation != trimmedNewText
                 item = ClipboardItem(
                     id: item.id,
                     data: .text(trimmedNewText, sourceURL: sourceURL),
@@ -290,7 +440,10 @@ class ClipboardViewModel: ObservableObject {
                     sourceApp: item.sourceApp,
                     isPinned: item.isPinned,
                     copyCount: item.copyCount,
-                    customMetadata: item.customMetadata
+                    customMetadata: item.customMetadata,
+                    urlTitle: textChanged ? nil : item.urlTitle,
+                    urlDescription: textChanged ? nil : item.urlDescription,
+                    ocrText: item.ocrText
                 )
                 history[index] = item
                 updatedItem = item
@@ -299,6 +452,7 @@ class ClipboardViewModel: ObservableObject {
         if let index = filteredHistory.firstIndex(where: { $0.id == id }) {
             var item = filteredHistory[index]
             if case .text(_, let sourceURL) = item.data {
+                let textChanged = item.textRepresentation != trimmedNewText
                 item = ClipboardItem(
                     id: item.id,
                     data: .text(trimmedNewText, sourceURL: sourceURL),
@@ -306,7 +460,10 @@ class ClipboardViewModel: ObservableObject {
                     sourceApp: item.sourceApp,
                     isPinned: item.isPinned,
                     copyCount: item.copyCount,
-                    customMetadata: item.customMetadata
+                    customMetadata: item.customMetadata,
+                    urlTitle: textChanged ? nil : item.urlTitle,
+                    urlDescription: textChanged ? nil : item.urlDescription,
+                    ocrText: item.ocrText
                 )
                 filteredHistory[index] = item
                 updatedItem = item
@@ -314,7 +471,13 @@ class ClipboardViewModel: ObservableObject {
             recalculateDerivedData()
         }
         if let updatedItem {
-            Task { await historyRepository.insert(updatedItem) }
+            attemptedEnrichmentIDs.remove(updatedItem.id)
+            Task {
+                await historyRepository.insert(updatedItem)
+                await MainActor.run {
+                    self.enrichItemIfNeeded(updatedItem)
+                }
+            }
         }
     }
     

@@ -19,7 +19,7 @@ struct ClipyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(settings: appSettings, focusManager: appFocusManager, permissionMonitor: permissionMonitor)
-                // ... (existing modifiers) ...
+                .environment(\.locale, appSettings.resolvedLocale)
                 .frame(width: 1000, height: 600)
                 .onAppear {
                     if let window = NSApplication.shared.windows.first {
@@ -75,7 +75,8 @@ struct ClipyApp: App {
         
         WindowGroup("Settings", id: "settings") {
             SettingsView(settings: appSettings)
-                .frame(minWidth: 650, minHeight: 400)
+                .environment(\.locale, appSettings.resolvedLocale)
+                .frame(minWidth: 650, minHeight: 420)
         }
         .windowResizability(.contentSize)
     }

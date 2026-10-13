@@ -15,7 +15,9 @@ struct LuminaRow: View, Equatable {
     static func == (lhs: LuminaRow, rhs: LuminaRow) -> Bool {
         return lhs.item.id == rhs.item.id &&
                lhs.isSelected == rhs.isSelected &&
-               lhs.item.customMetadata == rhs.item.customMetadata
+               lhs.item.isPinned == rhs.item.isPinned &&
+               lhs.item.customMetadata == rhs.item.customMetadata &&
+               lhs.item.textRepresentation == rhs.item.textRepresentation
     }
     
     private var previewText: String {
@@ -37,7 +39,7 @@ struct LuminaRow: View, Equatable {
                     .frame(width: 32, height: 32)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             } else {
-                Image(systemName: iconName(for: item.data))
+                Image(systemName: iconName(for: item))
                     .font(.system(size: 14))
                     .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
                     .frame(width: 20, height: 20)
@@ -84,8 +86,12 @@ struct LuminaRow: View, Equatable {
         }
         .contentShape(Rectangle()) // Ensure entire row is clickable
     }
-    private func iconName(for data: ClipboardData) -> String {
-        switch data {
+    
+    private func iconName(for item: ClipboardItem) -> String {
+        if item.isDirectURL {
+            return "link"
+        }
+        switch item.data {
         case .text: return "doc.text"
         case .color: return "paintpalette"
         case .image: return "photo"
