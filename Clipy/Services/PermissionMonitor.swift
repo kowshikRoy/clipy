@@ -9,6 +9,9 @@ class PermissionMonitor: ObservableObject {
 
     init() {
         checkPermission()
+        if !isTrusted {
+            registerInAccessibilityList()
+        }
         startMonitoring()
     }
 
@@ -39,39 +42,59 @@ class PermissionMonitor: ObservableObject {
         }
     }
 
-    func openAccessibilitySettings() {
+    /// Resets any stale code-signature entry on launch (when untrusted) and registers
+    /// the current Clipy binary in System Settings -> Privacy & Security -> Accessibility.
+    private func registerInAccessibilityList() {
         let bundleID = Bundle.main.bundleIdentifier ?? "com.matrixcode.Clipy"
-        
         DispatchQueue.global(qos: .userInitiated).async {
-            // 1. Reset any stale TCC signature from previous builds so toggling in System Settings works
+            // 1. Clear any stale CDHash from an older build so the current binary is registered cleanly
             let resetTask = Process()
             resetTask.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
             resetTask.arguments = ["reset", "Accessibility", bundleID]
             try? resetTask.run()
             resetTask.waitUntilExit()
-            
-            // 2. Trigger TCC registration so Clipy appears in the System Settings Accessibility list
+
+            // 2. Prompt TCC registration so universalAccessAuthWarn adds Clipy to the Accessibility list
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            let status = AXIsProcessTrustedWithOptions(options)
+            DispatchQueue.main.async {
+                self.isTrusted = status
+            }
+
+            // 3. Wait ~1.0s so universalAccessAuthWarn finishes TCCAccessSetForBundleIdWithOptions()
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.0) {
+                Self.dismissSystemAuthAlert()
+            }
+        }
+    }
+
+    func openAccessibilitySettings() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            // Ensure Clipy is registered in the Accessibility list (without deleting the existing entry)
             let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             let status = AXIsProcessTrustedWithOptions(options)
             
-            // 3. Dismiss the redundant system popup modal so ONLY System Settings opens
-            for delay in [0.1, 0.25, 0.5] {
-                DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) {
-                    let dismissTask = Process()
-                    dismissTask.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
-                    dismissTask.arguments = ["-9", "universalAccessAuthWarn"]
-                    dismissTask.standardOutput = FileHandle.nullDevice
-                    dismissTask.standardError = FileHandle.nullDevice
-                    try? dismissTask.run()
-                }
-            }
-            
+            // Open System Settings -> Privacy & Security -> Accessibility
             DispatchQueue.main.async {
                 self.isTrusted = status
                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
                     NSWorkspace.shared.open(url)
                 }
             }
+            
+            // Dismiss the redundant background alert after TCC registration completes
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.0) {
+                Self.dismissSystemAuthAlert()
+            }
         }
+    }
+
+    private static func dismissSystemAuthAlert() {
+        let dismissTask = Process()
+        dismissTask.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
+        dismissTask.arguments = ["universalAccessAuthWarn"]
+        dismissTask.standardOutput = FileHandle.nullDevice
+        dismissTask.standardError = FileHandle.nullDevice
+        try? dismissTask.run()
     }
 }
