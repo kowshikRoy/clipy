@@ -8,8 +8,8 @@ class PermissionMonitor: ObservableObject {
     private var timer: Timer?
 
     init() {
-        checkPermission()
-        if !isTrusted {
+        let trusted = checkPermission()
+        if !trusted {
             registerInAccessibilityList()
         }
         startMonitoring()
@@ -30,24 +30,45 @@ class PermissionMonitor: ObservableObject {
         timer = nil
     }
 
-    func checkPermission() {
+    @discardableResult
+    func checkPermission() -> Bool {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
         let currentStatus = AXIsProcessTrustedWithOptions(options)
         print("[Debug] Monitor Check: \(currentStatus)")
         
         if isTrusted != currentStatus {
-            DispatchQueue.main.async {
+            if Thread.isMainThread {
                 self.isTrusted = currentStatus
+            } else {
+                DispatchQueue.main.async {
+                    self.isTrusted = currentStatus
+                }
+            }
+        }
+        return currentStatus
+    }
+
+    /// Ensures Clipy appears in System Settings -> Privacy & Security -> Accessibility on launch
+    /// without resetting/deleting any existing TCC entry.
+    private func registerInAccessibilityList() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            let status = AXIsProcessTrustedWithOptions(options)
+            DispatchQueue.main.async {
+                self.isTrusted = status
+            }
+
+            // Wait ~1.0s so universalAccessAuthWarn finishes TCCAccessSetForBundleIdWithOptions()
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.0) {
+                Self.dismissSystemAuthAlert()
             }
         }
     }
 
-    /// Resets any stale code-signature entry on launch (when untrusted) and registers
-    /// the current Clipy binary in System Settings -> Privacy & Security -> Accessibility.
-    private func registerInAccessibilityList() {
+    func openAccessibilitySettings() {
         let bundleID = Bundle.main.bundleIdentifier ?? "com.matrixcode.Clipy"
         DispatchQueue.global(qos: .userInitiated).async {
-            // 1. Clear any stale CDHash from an older build so the current binary is registered cleanly
+            // 1. Reset any stale CDHash from an older build so the current binary is registered cleanly
             let resetTask = Process()
             resetTask.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
             resetTask.arguments = ["reset", "Accessibility", bundleID]
@@ -57,24 +78,8 @@ class PermissionMonitor: ObservableObject {
             // 2. Prompt TCC registration so universalAccessAuthWarn adds Clipy to the Accessibility list
             let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             let status = AXIsProcessTrustedWithOptions(options)
-            DispatchQueue.main.async {
-                self.isTrusted = status
-            }
-
-            // 3. Wait ~1.0s so universalAccessAuthWarn finishes TCCAccessSetForBundleIdWithOptions()
-            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.0) {
-                Self.dismissSystemAuthAlert()
-            }
-        }
-    }
-
-    func openAccessibilitySettings() {
-        DispatchQueue.global(qos: .userInitiated).async {
-            // Ensure Clipy is registered in the Accessibility list (without deleting the existing entry)
-            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            let status = AXIsProcessTrustedWithOptions(options)
             
-            // Open System Settings -> Privacy & Security -> Accessibility
+            // 3. Open System Settings -> Privacy & Security -> Accessibility
             DispatchQueue.main.async {
                 self.isTrusted = status
                 if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
@@ -82,7 +87,7 @@ class PermissionMonitor: ObservableObject {
                 }
             }
             
-            // Dismiss the redundant background alert after TCC registration completes
+            // 4. Dismiss the redundant background alert after TCC registration completes (~1.0s)
             DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 1.0) {
                 Self.dismissSystemAuthAlert()
             }

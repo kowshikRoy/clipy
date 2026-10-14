@@ -21,19 +21,13 @@ struct ClipyApp: App {
             ContentView(settings: appSettings, focusManager: appFocusManager, permissionMonitor: permissionMonitor)
                 .environment(\.locale, appSettings.resolvedLocale)
                 .frame(width: 1000, height: 600)
-                .fixedSize()
+                .background(MainWindowConfigurator())
                 .onAppear {
-                    configureFixedWindow()
                     setupHotKey()
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                    configureFixedWindow()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)) { notification in
-                    if let window = notification.object as? NSWindow,
-                       window == NSApplication.shared.windows.first,
-                       (window.frame.width != 1000 || window.frame.height != 600) {
-                        window.setFrame(NSRect(origin: window.frame.origin, size: NSSize(width: 1000, height: 600)), display: true)
+                    if let window = Self.mainAppWindow {
+                        Self.configure(window: window)
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
@@ -41,7 +35,6 @@ struct ClipyApp: App {
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
         .defaultSize(width: 1000, height: 600)
         .commands {
             CommandGroup(replacing: .appSettings) {
@@ -81,8 +74,17 @@ struct ClipyApp: App {
         .windowResizability(.contentSize)
     }
     
-    private func configureFixedWindow() {
-        guard let window = NSApplication.shared.windows.first else { return }
+    static var mainAppWindow: NSWindow? {
+        NSApplication.shared.windows.first { window in
+            let className = NSStringFromClass(type(of: window))
+            return !className.contains("StatusBar")
+                && !className.contains("Popup")
+                && window.identifier?.rawValue != "settings"
+                && window.contentView != nil
+        }
+    }
+
+    static func configure(window: NSWindow) {
         let fixedSize = NSSize(width: 1000, height: 600)
         window.styleMask.insert(.fullSizeContentView)
         window.styleMask.remove(.resizable)
@@ -94,7 +96,6 @@ struct ClipyApp: App {
         window.isMovableByWindowBackground = true
         window.backgroundColor = .clear
         window.isOpaque = false
-        window.level = .floating
         window.minSize = fixedSize
         window.maxSize = fixedSize
         window.contentMinSize = fixedSize
@@ -121,9 +122,29 @@ struct ClipyApp: App {
              NSApplication.shared.hide(nil)
         } else {
             NSApplication.shared.activate(ignoringOtherApps: true)
-            configureFixedWindow()
-            if let window = NSApplication.shared.windows.first {
+            if let window = Self.mainAppWindow {
+                Self.configure(window: window)
                 window.makeKeyAndOrderFront(nil)
+            }
+        }
+    }
+}
+
+private struct MainWindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                ClipyApp.configure(window: window)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            if let window = nsView.window {
+                ClipyApp.configure(window: window)
             }
         }
     }
