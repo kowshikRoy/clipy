@@ -57,15 +57,9 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         return Self.parseValidWebURL(string)
     }
     
-    /// Returns either the direct URL (if the clip is a URL) or the source webpage URL (if copied from a browser).
+    /// Returns the URL only when the copied text itself is a standalone HTTP/HTTPS URL.
     var detectedURL: URL? {
-        if let direct = directURL {
-            return direct
-        }
-        if case .text(_, let sourceURL) = data, let src = sourceURL {
-            return Self.parseValidWebURL(src)
-        }
-        return nil
+        directURL
     }
     
     var isDirectURL: Bool {

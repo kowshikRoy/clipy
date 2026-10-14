@@ -21,28 +21,28 @@ struct ClipyApp: App {
             ContentView(settings: appSettings, focusManager: appFocusManager, permissionMonitor: permissionMonitor)
                 .environment(\.locale, appSettings.resolvedLocale)
                 .frame(width: 1000, height: 600)
+                .fixedSize()
                 .onAppear {
-                    if let window = NSApplication.shared.windows.first {
-                        window.styleMask.insert(.fullSizeContentView)
-                        window.styleMask.remove(.resizable) // Disable resizing
-                        window.titlebarAppearsTransparent = true
-                        window.titleVisibility = .hidden
-                        window.standardWindowButton(.closeButton)?.isHidden = true
-                        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-                        window.standardWindowButton(.zoomButton)?.isHidden = true
-                        window.isMovableByWindowBackground = true
-                        window.backgroundColor = .clear
-                        window.isOpaque = false
-                    }
-                }
-                .onAppear {
+                    configureFixedWindow()
                     setupHotKey()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                    configureFixedWindow()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)) { notification in
+                    if let window = notification.object as? NSWindow,
+                       window == NSApplication.shared.windows.first,
+                       (window.frame.width != 1000 || window.frame.height != 600) {
+                        window.setFrame(NSRect(origin: window.frame.origin, size: NSSize(width: 1000, height: 600)), display: true)
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
                     NSApplication.shared.hide(nil)
                 }
         }
         .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 1000, height: 600)
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("Settings") {
@@ -81,6 +81,29 @@ struct ClipyApp: App {
         .windowResizability(.contentSize)
     }
     
+    private func configureFixedWindow() {
+        guard let window = NSApplication.shared.windows.first else { return }
+        let fixedSize = NSSize(width: 1000, height: 600)
+        window.styleMask.insert(.fullSizeContentView)
+        window.styleMask.remove(.resizable)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+        window.isMovableByWindowBackground = true
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.level = .floating
+        window.minSize = fixedSize
+        window.maxSize = fixedSize
+        window.contentMinSize = fixedSize
+        window.contentMaxSize = fixedSize
+        if window.frame.width != 1000 || window.frame.height != 600 {
+            window.setFrame(NSRect(origin: window.frame.origin, size: fixedSize), display: true)
+        }
+    }
+
     private func setupHotKey() {
         let manager = HotKeyManager.shared
         
@@ -98,7 +121,7 @@ struct ClipyApp: App {
              NSApplication.shared.hide(nil)
         } else {
             NSApplication.shared.activate(ignoringOtherApps: true)
-            // Ensure window is visible if it was closed
+            configureFixedWindow()
             if let window = NSApplication.shared.windows.first {
                 window.makeKeyAndOrderFront(nil)
             }

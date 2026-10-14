@@ -234,7 +234,7 @@ struct DetailStageView: View {
                     MetadataRow(icon: "folder", label: "Type", value: typeTitle, localizeValue: true)
                 }
                 .padding(.vertical, 8)
-                .frame(height: 160, alignment: .top)
+                .fixedSize(horizontal: false, vertical: true)
                 .background(Color.obsidianSurface)
                 .cornerRadius(8)
                 .overlay(
