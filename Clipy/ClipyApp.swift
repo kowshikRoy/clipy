@@ -20,7 +20,8 @@ struct ClipyApp: App {
         WindowGroup {
             ContentView(settings: appSettings, focusManager: appFocusManager, permissionMonitor: permissionMonitor)
                 .environment(\.locale, appSettings.resolvedLocale)
-                .frame(width: 1000, height: 600)
+                .frame(minWidth: 1000, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
+                .ignoresSafeArea()
                 .background(MainWindowConfigurator())
                 .onAppear {
                     setupHotKey()
@@ -98,8 +99,6 @@ struct ClipyApp: App {
         window.isOpaque = false
         window.minSize = fixedSize
         window.maxSize = fixedSize
-        window.contentMinSize = fixedSize
-        window.contentMaxSize = fixedSize
         if window.frame.width != 1000 || window.frame.height != 600 {
             window.setFrame(NSRect(origin: window.frame.origin, size: fixedSize), display: true)
         }
