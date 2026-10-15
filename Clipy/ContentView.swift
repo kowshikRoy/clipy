@@ -30,6 +30,7 @@ struct ContentView: View {
     }
 
     var body: some View {
+        let selectedItem = clipboardViewModel.selectedItem
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 // MARK: - List View (Left)
@@ -46,7 +47,7 @@ struct ContentView: View {
                 ZStack {
                     Color.obsidianBackground.opacity(0.6).ignoresSafeArea()
                     
-                    if let selectedItem = clipboardViewModel.selectedItem {
+                    if let selectedItem {
                         DetailStageView(
                             item: selectedItem,
                             isEditing: $clipboardViewModel.isEditing,
@@ -85,9 +86,9 @@ struct ContentView: View {
                 onDelete: deleteEntry,
                 onDeleteAll: deleteAllEntries,
                 onDeleteMetadata: deleteMetadata,
-                hasMetadata: clipboardViewModel.selectedItem?.customMetadata != nil,
-                isPinned: clipboardViewModel.selectedItem?.isPinned ?? false,
-                hasURL: clipboardViewModel.selectedItem?.hasLink ?? false,
+                hasMetadata: selectedItem?.customMetadata != nil,
+                isPinned: selectedItem?.isPinned ?? false,
+                hasURL: selectedItem?.hasLink ?? false,
                 onOpenURL: openSelectedURL
             )
         }

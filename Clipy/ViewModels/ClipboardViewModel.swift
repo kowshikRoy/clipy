@@ -13,7 +13,7 @@ import AppKit
 class ClipboardViewModel: ObservableObject {
     private var isApplyingEnrichment = false
     
-    @Published var history: [ClipboardItem] = [] {
+    var history: [ClipboardItem] = [] {
         didSet {
             saveHistory()
             if !isApplyingEnrichment {
@@ -37,27 +37,35 @@ class ClipboardViewModel: ObservableObject {
     }
     
     @Published var searchText: String = ""
-    @Published var filteredHistory: [ClipboardItem] = [] {
+    var filteredHistory: [ClipboardItem] = [] {
         didSet {
-            recalculateDerivedData()
+            if !isApplyingEnrichment {
+                recalculateDerivedData()
+            }
         }
     }
     @Published var selectedItemID: ClipboardItem.ID? {
         didSet {
-            if let item = selectedItem {
-                enrichItemIfNeeded(item)
-            }
+            scheduleSelectionEnrichment()
         }
     }
     @Published var isEditing: Bool = false
     @Published var editingText: String = ""
-    @Published var enrichingItemIDs: Set<UUID> = []
+    private(set) var enrichingItemIDs: Set<UUID> = []
     
     // Event specific to new items being added
     let newItemAdded = PassthroughSubject<Void, Never>()
     
+    // Fast O(1) lookup caches updated alongside derived data
+    private var itemByID: [UUID: ClipboardItem] = [:]
+    private var visualIndexByID: [UUID: Int] = [:]
+    private var pinnedIDSet: Set<UUID> = []
+    
     var selectedItem: ClipboardItem? {
         guard let selectedItemID else { return nil }
+        if let fast = itemByID[selectedItemID] {
+            return fast
+        }
         return filteredHistory.first { $0.id == selectedItemID } ?? history.first { $0.id == selectedItemID }
     }
     
@@ -66,6 +74,7 @@ class ClipboardViewModel: ObservableObject {
     private let settings: AppSettings
     private var cancellables = Set<AnyCancellable>()
     private var searchTask: Task<Void, Never>?
+    private var selectionEnrichmentTask: Task<Void, Never>?
     private var attemptedEnrichmentIDs = Set<UUID>()
     
     init(settings: AppSettings) {
@@ -115,6 +124,18 @@ class ClipboardViewModel: ObservableObject {
                 self?.ensureSelection()
             }
             .store(in: &cancellables)
+    }
+    
+    private func scheduleSelectionEnrichment() {
+        selectionEnrichmentTask?.cancel()
+        guard let targetID = selectedItemID else { return }
+        selectionEnrichmentTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled, let self = self, self.selectedItemID == targetID else { return }
+            if let item = self.selectedItem {
+                self.enrichItemIfNeeded(item)
+            }
+        }
     }
     
     private func applyFilter() {
@@ -271,7 +292,7 @@ class ClipboardViewModel: ObservableObject {
                 if needsURL || needsOCR {
                     enrichedCount += 1
                     enrichItemIfNeeded(item)
-                    try? await Task.sleep(for: .milliseconds(80))
+                    try? await Task.sleep(for: .milliseconds(150))
                 }
             }
         }
@@ -300,8 +321,11 @@ class ClipboardViewModel: ObservableObject {
         guard needsURL || imageFilename != nil else { return }
         
         attemptedEnrichmentIDs.insert(item.id)
-        enrichingItemIDs.insert(item.id)
         let itemID = item.id
+        if selectedItemID == itemID {
+            objectWillChange.send()
+        }
+        enrichingItemIDs.insert(itemID)
         
         Task {
             var fetchedTitle: String? = nil
@@ -325,21 +349,33 @@ class ClipboardViewModel: ObservableObject {
                 self.enrichingItemIDs.remove(itemID)
                 
                 guard fetchedTitle != nil || fetchedDescription != nil || recognizedOCR != nil else {
+                    if self.selectedItemID == itemID {
+                        self.objectWillChange.send()
+                    }
                     return
                 }
                 
                 self.isApplyingEnrichment = true
                 if let idx = self.history.firstIndex(where: { $0.id == itemID }) {
-                    if let fetchedTitle { self.history[idx].urlTitle = fetchedTitle }
-                    if let fetchedDescription { self.history[idx].urlDescription = fetchedDescription }
-                    if let recognizedOCR { self.history[idx].ocrText = recognizedOCR }
+                    var updated = self.history[idx]
+                    if let fetchedTitle { updated.urlTitle = fetchedTitle }
+                    if let fetchedDescription { updated.urlDescription = fetchedDescription }
+                    if let recognizedOCR { updated.ocrText = recognizedOCR }
+                    self.history[idx] = updated
+                    self.itemByID[itemID] = updated
+                }
+                if let fIdx = self.filteredHistory.firstIndex(where: { $0.id == itemID }) {
+                    var updated = self.filteredHistory[fIdx]
+                    if let fetchedTitle { updated.urlTitle = fetchedTitle }
+                    if let fetchedDescription { updated.urlDescription = fetchedDescription }
+                    if let recognizedOCR { updated.ocrText = recognizedOCR }
+                    self.filteredHistory[fIdx] = updated
+                    self.itemByID[itemID] = updated
                 }
                 self.isApplyingEnrichment = false
                 
-                if let fIdx = self.filteredHistory.firstIndex(where: { $0.id == itemID }) {
-                    if let fetchedTitle { self.filteredHistory[fIdx].urlTitle = fetchedTitle }
-                    if let fetchedDescription { self.filteredHistory[fIdx].urlDescription = fetchedDescription }
-                    if let recognizedOCR { self.filteredHistory[fIdx].ocrText = recognizedOCR }
+                if self.selectedItemID == itemID {
+                    self.objectWillChange.send()
                 }
                 
                 Task {
@@ -393,7 +429,7 @@ class ClipboardViewModel: ObservableObject {
     }
     
     func deleteItem(id: UUID) {
-        let itemToDelete = filteredHistory.first(where: { $0.id == id }) ?? history.first(where: { $0.id == id })
+        let itemToDelete = itemByID[id] ?? filteredHistory.first(where: { $0.id == id }) ?? history.first(where: { $0.id == id })
         if let item = itemToDelete {
             if case .image(let filename) = item.data {
                 Task { await historyRepository.deleteImage(filename) }
@@ -468,7 +504,6 @@ class ClipboardViewModel: ObservableObject {
                 filteredHistory[index] = item
                 updatedItem = item
             }
-            recalculateDerivedData()
         }
         if let updatedItem {
             attemptedEnrichmentIDs.remove(updatedItem.id)
@@ -494,7 +529,6 @@ class ClipboardViewModel: ObservableObject {
             item.customMetadata = metadata
             filteredHistory[index] = item
             updatedItem = item
-            recalculateDerivedData()
         }
         if let updatedItem {
             Task { await historyRepository.insert(updatedItem) }
@@ -506,24 +540,52 @@ class ClipboardViewModel: ObservableObject {
     
     // MARK: - Presentation Logic
     
+    struct CategorySection: Identifiable, Equatable {
+        let category: DateCategory
+        let items: [ClipboardItem]
+        var id: DateCategory { category }
+    }
+    
     @Published var pinnedItems: [ClipboardItem] = []
     @Published var unpinnedHistory: [ClipboardItem] = []
-    @Published var categorizedHistory: [(DateCategory, [ClipboardItem])] = []
+    @Published var categorizedHistory: [CategorySection] = []
     
     // Combined history in visual order for navigation
-    // Note: We don't necessarily need this to be Published if it's just for internal logic, but for safety lets keep it. 
-    // Actually moveSelection uses it, so it can be a simple property that is updated.
     var visualHistory: [ClipboardItem] = []
     
     private func recalculateDerivedData() {
         let currentFiltered = filteredHistory
         
-        let pItems = currentFiltered.filter { $0.isPinned }
-        let recentItems = currentFiltered.filter { !$0.isPinned }
+        var pItems: [ClipboardItem] = []
+        var recentItems: [ClipboardItem] = []
+        pItems.reserveCapacity(16)
+        recentItems.reserveCapacity(currentFiltered.count)
         
+        var newPinSet = Set<UUID>()
+        var newItemMap = [UUID: ClipboardItem](minimumCapacity: currentFiltered.count)
+        
+        for item in currentFiltered {
+            newItemMap[item.id] = item
+            if item.isPinned {
+                pItems.append(item)
+                newPinSet.insert(item.id)
+            } else {
+                recentItems.append(item)
+            }
+        }
+        
+        let combined = pItems + recentItems
+        var newIndexMap = [UUID: Int](minimumCapacity: combined.count)
+        for (idx, item) in combined.enumerated() {
+            newIndexMap[item.id] = idx
+        }
+        
+        self.itemByID = newItemMap
+        self.pinnedIDSet = newPinSet
+        self.visualIndexByID = newIndexMap
         self.pinnedItems = pItems
         self.unpinnedHistory = recentItems
-        self.visualHistory = pItems + recentItems
+        self.visualHistory = combined
         
         let calendar = Calendar.current
         let now = Date()
@@ -548,12 +610,12 @@ class ClipboardViewModel: ObservableObject {
             }
         }
         
-        var result: [(DateCategory, [ClipboardItem])] = []
-        if !today.isEmpty { result.append((.today, today)) }
-        if !yesterday.isEmpty { result.append((.yesterday, yesterday)) }
-        if !thisWeek.isEmpty { result.append((.thisWeek, thisWeek)) }
-        if !thisMonth.isEmpty { result.append((.thisMonth, thisMonth)) }
-        if !rest.isEmpty { result.append((.rest, rest)) }
+        var result: [CategorySection] = []
+        if !today.isEmpty { result.append(CategorySection(category: .today, items: today)) }
+        if !yesterday.isEmpty { result.append(CategorySection(category: .yesterday, items: yesterday)) }
+        if !thisWeek.isEmpty { result.append(CategorySection(category: .thisWeek, items: thisWeek)) }
+        if !thisMonth.isEmpty { result.append(CategorySection(category: .thisMonth, items: thisMonth)) }
+        if !rest.isEmpty { result.append(CategorySection(category: .rest, items: rest)) }
         
         self.categorizedHistory = result
     }
@@ -582,7 +644,12 @@ class ClipboardViewModel: ObservableObject {
         let history = visualHistory
         guard !history.isEmpty else { return }
         
-        let currentIndex = history.firstIndex { $0.id == selectedItemID } ?? -1
+        let currentIndex: Int
+        if let selectedItemID, let fastIndex = visualIndexByID[selectedItemID] {
+            currentIndex = fastIndex
+        } else {
+            currentIndex = history.firstIndex { $0.id == selectedItemID } ?? -1
+        }
         
         // Prevent jitter at bounds
         if currentIndex == 0 && offset < 0 { return }
@@ -596,24 +663,20 @@ class ClipboardViewModel: ObservableObject {
         let newItem = history[newIndex]
         if selectedItemID != newItem.id {
             selectedItemID = newItem.id
-            isEditing = false
+            if isEditing {
+                isEditing = false
+            }
             
-            if let proxy = proxy {
-                // Allow scrolling for any item that is not pinned
-                if !pinnedItems.contains(where: { $0.id == newItem.id }) {
-                    withAnimation {
-                        // If searching, always scroll to item (no named sections)
-                        if !searchText.isEmpty {
-                            proxy.scrollTo(newItem.id, anchor: nil)
-                        } else {
-                            // Check if this item is the FIRST in a category
-                            if let category = categorizedHistory.first(where: { $0.1.first?.id == newItem.id }) {
-                                // Scroll to HEADER
-                                proxy.scrollTo(category.0.title, anchor: .top)
-                            } else {
-                                proxy.scrollTo(newItem.id, anchor: nil)
-                            }
-                        }
+            if let proxy = proxy, !pinnedIDSet.contains(newItem.id) {
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    if !searchText.isEmpty {
+                        proxy.scrollTo(newItem.id, anchor: nil)
+                    } else if unpinnedHistory.first?.id == newItem.id {
+                        proxy.scrollTo("top-anchor", anchor: .top)
+                    } else {
+                        proxy.scrollTo(newItem.id, anchor: nil)
                     }
                 }
             }
@@ -621,18 +684,23 @@ class ClipboardViewModel: ObservableObject {
     }
 
     private func saveHistory() {
-        // No-op: Items are now saved individually via addOrUpdateItem -> insert
-        // or we need to expose an update method.
-        // For simplicity, we can rely on addOrUpdateItem doing the insert.
-        // But removing items needs to be handled.
+        // No-op: Items are saved individually via addOrUpdateItem -> insert
     }
     
     func resetToDefault() {
-        searchText = ""
-        filteredHistory = history
+        let needsReset = !searchText.isEmpty || filterType != .all || filteredHistory.count != history.count
+        if !searchText.isEmpty {
+            searchText = ""
+        }
+        if filterType != .all {
+            filterType = .all
+        }
+        if needsReset {
+            filteredHistory = history
+        }
         
         // Sticky selection: Keep current selection if valid
-        if let selectedItemID, history.contains(where: { $0.id == selectedItemID }) {
+        if let selectedItemID, itemByID[selectedItemID] != nil {
             return
         }
         
@@ -644,7 +712,7 @@ class ClipboardViewModel: ObservableObject {
     }
     
     func ensureSelection() {
-        if let selectedItemID, filteredHistory.contains(where: { $0.id == selectedItemID }) {
+        if let selectedItemID, itemByID[selectedItemID] != nil {
             return
         }
 

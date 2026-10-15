@@ -20,7 +20,7 @@ struct FooterView: View {
     
     @State private var showActionsMenu = false
 
-    private var versionString: String {
+    private static let versionString: String = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         
@@ -38,7 +38,7 @@ struct FooterView: View {
         }
         
         return "v\(formatter.string(from: buildDate))"
-    }
+    }()
 
     var body: some View {
         HStack(spacing: 0) {
@@ -49,7 +49,7 @@ struct FooterView: View {
                 Text("Clipy")
                     .font(.custom("Roboto", size: 13))
                     .foregroundColor(.luminaTextSecondary)
-                Text(versionString)
+                Text(Self.versionString)
                     .font(.system(size: 11))
                     .foregroundColor(.luminaTextSecondary.opacity(0.6))
 

@@ -40,6 +40,11 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
     var urlDescription: String? = nil
     var ocrText: String? = nil
     
+    /// Precomputed single-line preview (capped to 240 chars) for fast list row rendering without full-string splitting.
+    let previewText: String
+    /// Precomputed standalone HTTP/HTTPS URL if the copied text itself is a direct web link.
+    let directURL: URL?
+    
     var textRepresentation: String {
         switch data {
         case .text(let string, _):
@@ -49,12 +54,6 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         case .image:
             return "Image"
         }
-    }
-    
-    /// If the copied text itself is a standalone HTTP/HTTPS URL, returns it.
-    var directURL: URL? {
-        guard case .text(let string, _) = data else { return nil }
-        return Self.parseValidWebURL(string)
     }
     
     /// Returns the URL only when the copied text itself is a standalone HTTP/HTTPS URL.
@@ -70,7 +69,33 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         detectedURL != nil
     }
     
+    static func computePreviewText(for data: ClipboardData) -> String {
+        switch data {
+        case .image:
+            return "Image"
+        case .color(let hex):
+            return hex
+        case .text(let string, _):
+            // Inspect at most the first 4096 characters to find the first non-empty line without splitting large texts
+            let sample = string.prefix(4096)
+            var firstLine: String?
+            String(sample).enumerateLines { line, stop in
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if !trimmed.isEmpty {
+                    firstLine = String(trimmed.prefix(240))
+                    stop = true
+                }
+            }
+            if let firstLine {
+                return firstLine
+            }
+            let fallback = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            return String(fallback.prefix(240))
+        }
+    }
+    
     static func parseValidWebURL(_ raw: String) -> URL? {
+        guard raw.utf8.count <= 2048 else { return nil }
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty,
               trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
@@ -113,12 +138,19 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         self.urlTitle = urlTitle
         self.urlDescription = urlDescription
         self.ocrText = ocrText
+        self.previewText = Self.computePreviewText(for: data)
+        if case .text(let string, _) = data {
+            self.directURL = Self.parseValidWebURL(string)
+        } else {
+            self.directURL = nil
+        }
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(UUID.self, forKey: .id)
-        self.data = try container.decode(ClipboardData.self, forKey: .data)
+        let decodedData = try container.decode(ClipboardData.self, forKey: .data)
+        self.data = decodedData
         self.createdAt = try container.decode(Date.self, forKey: .createdAt)
         self.sourceApp = try container.decodeIfPresent(String.self, forKey: .sourceApp)
         self.isPinned = try container.decode(Bool.self, forKey: .isPinned)
@@ -127,6 +159,12 @@ struct ClipboardItem: Identifiable, Codable, Hashable {
         self.urlTitle = try container.decodeIfPresent(String.self, forKey: .urlTitle)
         self.urlDescription = try container.decodeIfPresent(String.self, forKey: .urlDescription)
         self.ocrText = try container.decodeIfPresent(String.self, forKey: .ocrText)
+        self.previewText = Self.computePreviewText(for: decodedData)
+        if case .text(let string, _) = decodedData {
+            self.directURL = Self.parseValidWebURL(string)
+        } else {
+            self.directURL = nil
+        }
     }
     
     func encode(to encoder: Encoder) throws {

@@ -18,6 +18,41 @@ struct DetailStageView: View {
     var onCopyOCRText: ((String) -> Void)? = nil
     
     @State private var websiteLogo: NSImage? = nil
+    @State private var websiteLogoItemID: UUID? = nil
+    @State private var detailImage: NSImage? = nil
+    @State private var detailImageItemID: UUID? = nil
+    @State private var didFinishImageLoad: Bool = false
+    @State private var settledItemID: UUID? = nil
+    @State private var showFullLargeText: Bool = false
+    
+    private static let fastPreviewCharLimit = 4_000
+    private static let settledPreviewCharLimit = 50_000
+    private static var appIconCache: [String: NSImage] = [:]
+    private static var missingAppIcons: Set<String> = []
+    private static let byteFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter
+    }()
+    
+    private var isSelectionSettled: Bool {
+        settledItemID == item.id
+    }
+    
+    private func resolvedLogo(for url: URL) -> NSImage? {
+        if websiteLogoItemID == item.id, let websiteLogo {
+            return websiteLogo
+        }
+        return URLMetadataService.shared.cachedWebsiteLogo(for: url)
+    }
+    
+    private func resolvedDetailImage(for filename: String) -> NSImage? {
+        if detailImageItemID == item.id, let detailImage {
+            return detailImage
+        }
+        return ImageLoader.shared.cachedImage(filename: filename)
+            ?? ImageLoader.shared.cachedThumbnail(filename: filename)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -60,31 +95,30 @@ struct DetailStageView: View {
                 // Display image or text
                 if case .image(let filename) = item.data {
                     VStack(alignment: .leading, spacing: 12) {
-                        if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-                            let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
-                            if let nsImage = NSImage(contentsOf: fileURL) {
-                                GeometryReader { geometry in
-                                    ScrollView([.horizontal, .vertical]) {
-                                        Image(nsImage: nsImage)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
-                                            .cornerRadius(4)
-                                    }
-                                    .frame(maxHeight: .infinity)
-                                    .padding(4)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.obsidianBorder, lineWidth: 1)
-                                    )
+                        if let nsImage = resolvedDetailImage(for: filename) {
+                            GeometryReader { geometry in
+                                ScrollView([.horizontal, .vertical]) {
+                                    Image(nsImage: nsImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
+                                        .cornerRadius(4)
                                 }
-                            } else {
-                                Text("Image not found")
-                                    .foregroundColor(.luminaTextSecondary)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .frame(maxHeight: .infinity)
+                                .padding(4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.obsidianBorder, lineWidth: 1)
+                                )
                             }
+                        } else if !didFinishImageLoad || detailImageItemID != item.id {
+                            ZStack {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
-                            Text("Error loading image")
+                            Text("Image not found")
                                 .foregroundColor(.luminaTextSecondary)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
@@ -124,7 +158,6 @@ struct DetailStageView: View {
                                     .font(.custom("Roboto", size: 12))
                                     .foregroundColor(.luminaTextSecondary)
                                     .lineLimit(2)
-                                    .textSelection(.enabled)
                             }
                             .padding(12)
                             .background(Color.obsidianSurface.opacity(0.75))
@@ -136,15 +169,39 @@ struct DetailStageView: View {
                         }
                     }
                 } else {
+                    let fullText = item.textRepresentation
+                    let charLimit = showFullLargeText ? Int.max : (isSelectionSettled ? Self.settledPreviewCharLimit : Self.fastPreviewCharLimit)
+                    let displayedText = fullText.count > charLimit ? String(fullText.prefix(charLimit)) : fullText
+                    
                     VStack(alignment: .leading, spacing: 12) {
                         ScrollView {
-                            Text(item.textRepresentation)
-                                .font(.custom("Roboto", size: 14))
-                                .foregroundColor(.luminaTextPrimary)
-                                .lineSpacing(6)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                                .padding(12)
+                            VStack(alignment: .leading, spacing: 8) {
+                                if isSelectionSettled {
+                                    Text(displayedText)
+                                        .font(.custom("Roboto", size: 14))
+                                        .foregroundColor(.luminaTextPrimary)
+                                        .lineSpacing(6)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .textSelection(.enabled)
+                                } else {
+                                    Text(displayedText)
+                                        .font(.custom("Roboto", size: 14))
+                                        .foregroundColor(.luminaTextPrimary)
+                                        .lineSpacing(6)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                
+                                if isSelectionSettled && !showFullLargeText && fullText.count > Self.settledPreviewCharLimit {
+                                    Button("Show Full Text (\(fullText.count.formatted()) characters)") {
+                                        showFullLargeText = true
+                                    }
+                                    .buttonStyle(.plain)
+                                    .font(.custom("Roboto", size: 12))
+                                    .foregroundColor(.luminaAccent)
+                                    .padding(.top, 4)
+                                }
+                            }
+                            .padding(12)
                         }
                         .frame(maxHeight: .infinity) // Fill space
                         .background(Color.obsidianSurface.opacity(0.3)) 
@@ -158,7 +215,7 @@ struct DetailStageView: View {
                         if let webURL = item.detectedURL {
                             WebLinkPreviewCard(
                                 url: webURL,
-                                logo: websiteLogo,
+                                logo: resolvedLogo(for: webURL),
                                 title: resolvedWebsiteTitle(for: webURL),
                                 description: item.urlDescription,
                                 isEnriching: isEnriching,
@@ -200,24 +257,21 @@ struct DetailStageView: View {
                                 icon: "globe",
                                 label: "Website",
                                 value: metadataWebsiteDisplay(for: webURL),
-                                appIcon: websiteLogo
+                                appIcon: resolvedLogo(for: webURL)
                             )
                         }
                         
                         let byteCount = text.utf8.count
-                        let sizeString = ByteCountFormatter.string(fromByteCount: Int64(byteCount), countStyle: .file)
+                        let sizeString = Self.byteFormatter.string(fromByteCount: Int64(byteCount))
                         MetadataRow(icon: "arrow.up.left.and.arrow.down.right", label: "Size", value: sizeString)
                     }
                     
                     if case .image(let filename) = item.data {
-                        // Show image dimensions
-                        if let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-                            let fileURL = appSupportURL.appendingPathComponent("Clipy").appendingPathComponent(filename)
-                            if let nsImage = NSImage(contentsOf: fileURL) {
-                                let width = Int(nsImage.size.width)
-                                let height = Int(nsImage.size.height)
-                                MetadataRow(icon: "arrow.up.left.and.arrow.down.right", label: "Size", value: "\(width) × \(height)")
-                            }
+                        // Show image dimensions from cache or loaded image without blocking main thread
+                        if let size = ImageLoader.shared.cachedDimensions(filename: filename) ?? resolvedDetailImage(for: filename)?.size {
+                            let width = Int(size.width)
+                            let height = Int(size.height)
+                            MetadataRow(icon: "arrow.up.left.and.arrow.down.right", label: "Size", value: "\(width) × \(height)")
                         }
                     }
                     
@@ -245,16 +299,45 @@ struct DetailStageView: View {
         }
         .padding(24)
         .background(Color.clear)
-        .task(id: item.detectedURL?.absoluteString) {
-            guard let url = item.detectedURL else {
-                websiteLogo = nil
-                return
+        .task(id: item.id) {
+            showFullLargeText = false
+            let currentID = item.id
+            
+            // 1. Load full-resolution image off the main thread if this item is an image
+            if case .image(let filename) = item.data {
+                if let cached = ImageLoader.shared.cachedImage(filename: filename) {
+                    detailImage = cached
+                    detailImageItemID = currentID
+                    didFinishImageLoad = true
+                } else {
+                    didFinishImageLoad = false
+                    let loaded = await ImageLoader.shared.loadImage(filename: filename)
+                    guard !Task.isCancelled else { return }
+                    detailImage = loaded
+                    detailImageItemID = currentID
+                    didFinishImageLoad = true
+                }
             }
-            websiteLogo = nil
-            let loadedLogo = await URLMetadataService.shared.fetchWebsiteLogo(for: url)
-            if !Task.isCancelled {
-                websiteLogo = loadedLogo
+            
+            // 2. Load website logo if needed
+            if let url = item.detectedURL {
+                if let cachedLogo = URLMetadataService.shared.cachedWebsiteLogo(for: url) {
+                    websiteLogo = cachedLogo
+                    websiteLogoItemID = currentID
+                } else {
+                    try? await Task.sleep(for: .milliseconds(60))
+                    guard !Task.isCancelled else { return }
+                    let loadedLogo = await URLMetadataService.shared.fetchWebsiteLogo(for: url)
+                    guard !Task.isCancelled else { return }
+                    websiteLogo = loadedLogo
+                    websiteLogoItemID = currentID
+                }
             }
+            
+            // 3. Mark selection settled after a brief pause so rapid arrow navigation stays instantaneous
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled else { return }
+            settledItemID = currentID
         }
     }
     
@@ -277,16 +360,28 @@ struct DetailStageView: View {
     }
     
     private func iconForApp(_ name: String) -> NSImage? {
+        if let cached = Self.appIconCache[name] {
+            return cached
+        }
+        if Self.missingAppIcons.contains(name) {
+            return nil
+        }
+        
         let path = "/Applications/\(name).app"
         if FileManager.default.fileExists(atPath: path) {
-            return NSWorkspace.shared.icon(forFile: path)
+            let icon = NSWorkspace.shared.icon(forFile: path)
+            Self.appIconCache[name] = icon
+            return icon
         }
         
         let systemPath = "/System/Applications/\(name).app"
         if FileManager.default.fileExists(atPath: systemPath) {
-            return NSWorkspace.shared.icon(forFile: systemPath)
+            let icon = NSWorkspace.shared.icon(forFile: systemPath)
+            Self.appIconCache[name] = icon
+            return icon
         }
         
+        Self.missingAppIcons.insert(name)
         return nil
     }
 }

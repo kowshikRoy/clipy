@@ -19,7 +19,7 @@ actor URLMetadataService {
     
     private var cache: [String: URLMetadataResult] = [:]
     private var inFlightTasks: [String: Task<URLMetadataResult?, Never>] = [:]
-    private var logoMemoryCache: [String: NSImage] = [:]
+    private nonisolated(unsafe) let logoMemoryCache = NSCache<NSString, NSImage>()
     private var inFlightLogoTasks: [String: Task<NSImage?, Never>] = [:]
     
     private let faviconDirectory: URL? = {
@@ -72,10 +72,16 @@ actor URLMetadataService {
     
     // MARK: - Website Logo (Favicon) Fetching & Caching
     
+    nonisolated func cachedWebsiteLogo(for url: URL) -> NSImage? {
+        let key = Self.logoCacheKey(for: url) as NSString
+        return logoMemoryCache.object(forKey: key)
+    }
+    
     func fetchWebsiteLogo(for url: URL) async -> NSImage? {
         let key = Self.logoCacheKey(for: url)
+        let nsKey = key as NSString
         
-        if let cached = logoMemoryCache[key] {
+        if let cached = logoMemoryCache.object(forKey: nsKey) {
             return cached
         }
         
@@ -109,12 +115,12 @@ actor URLMetadataService {
         inFlightLogoTasks[key] = nil
         
         if let image = image {
-            logoMemoryCache[key] = image
+            logoMemoryCache.setObject(image, forKey: nsKey)
         }
         return image
     }
     
-    private static func logoCacheKey(for url: URL) -> String {
+    private nonisolated static func logoCacheKey(for url: URL) -> String {
         let host = (url.host ?? "web").lowercased()
         if host == "docs.google.com" {
             if url.path.contains("/spreadsheets/") { return "docs.google.com_sheets" }

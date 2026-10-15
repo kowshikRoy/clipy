@@ -10,6 +10,7 @@ import SwiftUI
 struct LuminaRow: View, Equatable {
     let item: ClipboardItem
     let isSelected: Bool
+    var onSelect: (() -> Void)? = nil
     @State private var isHovering = false
     
     static func == (lhs: LuminaRow, rhs: LuminaRow) -> Bool {
@@ -17,18 +18,7 @@ struct LuminaRow: View, Equatable {
                lhs.isSelected == rhs.isSelected &&
                lhs.item.isPinned == rhs.item.isPinned &&
                lhs.item.customMetadata == rhs.item.customMetadata &&
-               lhs.item.textRepresentation == rhs.item.textRepresentation
-    }
-    
-    private var previewText: String {
-        let lines = item.textRepresentation.components(separatedBy: .newlines)
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if !trimmed.isEmpty {
-                return trimmed
-            }
-        }
-        return item.textRepresentation.trimmingCharacters(in: .whitespacesAndNewlines)
+               lhs.item.previewText == rhs.item.previewText
     }
     
     var body: some View {
@@ -45,7 +35,7 @@ struct LuminaRow: View, Equatable {
                     .frame(width: 20, height: 20)
             }
             
-            Text(previewText)
+            Text(item.previewText)
                 .font(.custom("Roboto", size: 13))
                 .fontWeight(.regular)
                 .foregroundColor(isSelected ? .luminaTextPrimary : .luminaTextSecondary)
@@ -85,6 +75,9 @@ struct LuminaRow: View, Equatable {
             isHovering = hovering // No animation
         }
         .contentShape(Rectangle()) // Ensure entire row is clickable
+        .onTapGesture {
+            onSelect?()
+        }
     }
     
     private func iconName(for item: ClipboardItem) -> String {
@@ -101,19 +94,20 @@ struct LuminaRow: View, Equatable {
 
 struct AsyncThumbnailView: View {
     let filename: String
-    @State private var image: NSImage?
-    @State private var isLoading = true
+    @State private var loadedImage: NSImage?
+    @State private var didFinishLoading = false
     
     var body: some View {
+        let currentImage = loadedImage ?? ImageLoader.shared.cachedThumbnail(filename: filename)
         Group {
-            if let image = image {
+            if let image = currentImage {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {
                 ZStack {
                     Color.obsidianSurface
-                    if isLoading {
+                    if !didFinishLoading {
                         ProgressView()
                             .scaleEffect(0.5)
                     } else {
@@ -123,16 +117,16 @@ struct AsyncThumbnailView: View {
                 }
             }
         }
-        .task(priority: .userInitiated) {
-            await loadImage()
-        }
-    }
-    
-    private func loadImage() async {
-        let loadedImage = await ImageLoader.shared.loadImage(filename: filename)
-        await MainActor.run {
-            self.image = loadedImage
-            self.isLoading = false
+        .task(id: filename) {
+            if ImageLoader.shared.cachedThumbnail(filename: filename) != nil {
+                didFinishLoading = true
+                return
+            }
+            let fetched = await ImageLoader.shared.loadThumbnail(filename: filename)
+            if !Task.isCancelled {
+                loadedImage = fetched
+                didFinishLoading = true
+            }
         }
     }
 }

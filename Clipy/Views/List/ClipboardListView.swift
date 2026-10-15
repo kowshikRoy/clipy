@@ -12,6 +12,9 @@ struct ClipboardListView: View {
     @ObservedObject var permissionMonitor: PermissionMonitor
     let onPaste: () -> Void
     
+    @State private var keyMonitor: Any?
+    @State private var lastKeyRepeatTime: TimeInterval = 0
+    
     var body: some View {
         VStack(spacing: 0) {
             // Search & Filter Area
@@ -91,11 +94,13 @@ struct ClipboardListView: View {
                     
                     VStack(spacing: 0) {
                         ForEach(viewModel.pinnedItems) { item in
-                            LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
-                                .id(item.id)
-                                .onTapGesture {
-                                    viewModel.selectedItemID = item.id
-                                }
+                            LuminaRow(
+                                item: item,
+                                isSelected: viewModel.selectedItemID == item.id,
+                                onSelect: { viewModel.selectedItemID = item.id }
+                            )
+                            .equatable()
+                            .id(item.id)
                         }
                     }
                 }
@@ -116,42 +121,41 @@ struct ClipboardListView: View {
                     
                     LazyVStack(spacing: 0) {
                         if viewModel.searchText.isEmpty {
-                            ForEach(viewModel.categorizedHistory, id: \.0) { category, items in
-                                Section(header: sectionHeader(title: category.title, icon: category.icon).id(category.title)) {
-                                    ForEach(items) { item in
-                                        LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
-                                            .id(item.id)
-                                            .onTapGesture {
-                                                viewModel.selectedItemID = item.id
-                                            }
+                            ForEach(viewModel.categorizedHistory) { section in
+                                Section(header: sectionHeader(title: section.category.title, icon: section.category.icon).id(section.category.title)) {
+                                    ForEach(section.items) { item in
+                                        LuminaRow(
+                                            item: item,
+                                            isSelected: viewModel.selectedItemID == item.id,
+                                            onSelect: { viewModel.selectedItemID = item.id }
+                                        )
+                                        .equatable()
+                                        .id(item.id)
                                     }
                                 }
                             }
                         } else {
                             // Flat list during search
                             ForEach(viewModel.unpinnedHistory) { item in
-                                LuminaRow(item: item, isSelected: viewModel.selectedItemID == item.id)
-                                    .id(item.id)
-                                    .onTapGesture {
-                                        viewModel.selectedItemID = item.id
-                                    }
+                                LuminaRow(
+                                    item: item,
+                                    isSelected: viewModel.selectedItemID == item.id,
+                                    onSelect: { viewModel.selectedItemID = item.id }
+                                )
+                                .equatable()
+                                .id(item.id)
                             }
                         }
                     }
                     .padding(.vertical, 12)
                 }
                 .scrollIndicators(.hidden)
-                .background(
-                    // Hidden keyboard shortcuts for navigation
-                    ZStack {
-                        Button("") { viewModel.moveSelection(offset: -1, proxy: proxy) }
-                            .keyboardShortcut(.upArrow, modifiers: [])
-                        Button("") { viewModel.moveSelection(offset: 1, proxy: proxy) }
-                            .keyboardShortcut(.downArrow, modifiers: [])
-                    }
-                    .frame(width: 0, height: 0)
-                    .opacity(0)
-                )
+                .onAppear {
+                    installKeyMonitor(proxy: proxy)
+                }
+                .onDisappear {
+                    removeKeyMonitor()
+                }
                 .onReceive(viewModel.newItemAdded) { _ in
                     // Scroll to top-anchor when a new item is added
                     DispatchQueue.main.async {
@@ -161,6 +165,44 @@ struct ClipboardListView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func installKeyMonitor(proxy: ScrollViewProxy) {
+        removeKeyMonitor()
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard event.keyCode == 126 || event.keyCode == 125 else {
+                return event
+            }
+            let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            guard modifiers.isEmpty,
+                  !viewModel.isEditing,
+                  let window = event.window,
+                  window == ClipyApp.mainAppWindow else {
+                return event
+            }
+            
+            if event.isARepeat {
+                let now = ProcessInfo.processInfo.systemUptime
+                if now - lastKeyRepeatTime < 0.025 {
+                    return nil
+                }
+                lastKeyRepeatTime = now
+            }
+            
+            if event.keyCode == 126 {
+                viewModel.moveSelection(offset: -1, proxy: proxy)
+            } else {
+                viewModel.moveSelection(offset: 1, proxy: proxy)
+            }
+            return nil
+        }
+    }
+    
+    private func removeKeyMonitor() {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
         }
     }
     
